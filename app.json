@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "ProgettoIoT",
+    "slug": "ProgettoIoT",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon5.png",
+    "scheme": "progettoiot",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "icon": "./assets/images/icon6.png",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Questa app necessita dell'accesso alla fotocamera per scansionare i QR code"
+      },
+      "bundleIdentifier": "com.anonymous.ProgettoIoT"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon5.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.ProgettoIoT"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/icon5.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-barcode-scanner"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "splash": {
+      "image": "./assets/images/icon6.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    }
+  }
+}
