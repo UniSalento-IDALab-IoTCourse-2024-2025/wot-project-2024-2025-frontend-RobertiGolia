@@ -47,7 +47,7 @@ export default function Index() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push('/corse')}
+          onPress={() => router.replace('/corse')}
           className="w-full bg-[#0073ff] py-4 rounded-xl items-center"
         >
           <Text className="text-white text-lg font-semibold">

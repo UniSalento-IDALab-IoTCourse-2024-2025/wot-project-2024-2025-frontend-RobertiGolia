@@ -1,3 +1,30 @@
+import { View, Alert, Text, StyleSheet, Button, Linking } from 'react-native'
+import { ThemedText } from '@/components/ThemedText';
+import { TextInput } from 'react-native-gesture-handler';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const router = useRouter();
+
+
+const [email1, setEmail] = React.useState("")
+    const [password, setPassword] = React.useState("")
+    const [error, setError] = React.useState("")
+    const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
+
+
+const userDto = {
+  'email': email1,
+  'password': password
+}
+
+
+
+
 export interface User {
   nome: string;
   cognome: string;
@@ -34,6 +61,13 @@ export let registeredUsers: User[] = [
     password: "12345678"
   }
 ];
+
+
+
+
+
+
+
 
 export const addUser = (user: User) => {
   registeredUsers.push(user);

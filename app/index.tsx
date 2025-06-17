@@ -12,7 +12,7 @@ export default function SelectRole() {
       
       <View className="w-full space-y-4 gap-4">
         <TouchableOpacity
-          onPress={() => router.push('/(auth)/login')}
+          onPress={() => router.replace('/(auth)/login')}
           className="w-full bg-[#0073ff] py-4 rounded-xl items-center"
         >
           <Text className="text-white text-lg font-semibold">
