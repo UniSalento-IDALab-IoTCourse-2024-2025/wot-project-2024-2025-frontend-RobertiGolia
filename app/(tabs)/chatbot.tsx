@@ -1,8 +1,10 @@
 import { Text, View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import Header from "../../components/Header";
 import { useState, useRef } from "react";
+import { useRouter } from "expo-router";
 
 export default function Chatbot() {
+  const router = useRouter();
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [inputText, setInputText] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
@@ -77,6 +79,14 @@ export default function Chatbot() {
                   <Text className={message.isUser ? "text-white" : "text-secondary"}>
                     {message.text}
                   </Text>
+                  {!message.isUser && (
+                    <TouchableOpacity 
+                      className="mt-2 bg-[#0073ff] rounded-lg px-3 py-1 self-end"
+                      onPress={() => router.push("/partenza")}
+                    >
+                      <Text className="text-white text-sm">Continua</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </ScrollView>
