@@ -6,23 +6,47 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [inputText, setInputText] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
+  const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
+  const [error, setError] = useState('');
+  const [output, setOutput] = useState('');
 
-  const handleSendMessage = () => {
-    if (inputText.trim() === "") return;
-    
-    // Aggiungi il messaggio dell'utente
-    setMessages([...messages, { text: inputText, isUser: true }]);
-    
 
-    
-    // Simula la risposta del bot
-    setTimeout(() => {
-      setMessages(prev => [...prev, { text: "ciao, ho risposto", isUser: false }]);
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 500);
-    
-    setInputText("");
+  const handleSendMessage = async () => {
+    try {
+      // Aggiungo il messaggio dell'utente alla chat
+      setMessages(prev => [...prev, { text: inputText, isUser: true }]);
+      
+      //Chiamata API
+      const response = await fetch(invokeURL + "/run-model/" + inputText, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          //'Authorization': 'Bearer '+jwt
+        },
+      });
+
+      if (!response.ok) {
+        console.log('ricevuto HTTP status ' + response.status)
+        setError('Credenziali non valide')
+      }
+      const data = await response.json();
+      const { output } = data;
+      setOutput(output);
+
+      setTimeout(() => {
+        setMessages(prev => [...prev, { text: output, isUser: false }]);
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 500);
+      
+      setInputText("");
+
+
+
+    } catch (error) {
+      console.error("Errore durante il login:", error);
+    }
   };
+
 
   return (
     <View className="flex-1 bg-white">
