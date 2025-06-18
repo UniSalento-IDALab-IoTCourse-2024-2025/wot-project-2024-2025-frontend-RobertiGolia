@@ -9,6 +9,7 @@ export default function DriverRegistration() {
   const router = useRouter();
   const [nome, setNome] = useState('');
   const [cognome, setCognome] = useState('');
+  const [username, setUsername] = useState('')
   const [dataNascita, setDataNascita] = useState(new Date());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -120,6 +121,15 @@ export default function DriverRegistration() {
                 placeholder="Inserisci il tuo cognome"
                 value={cognome}
                 onChangeText={setCognome}
+              />
+            </View>
+            <View>
+              <Text className="text-secondary mb-2 text-base">Username *</Text>
+              <TextInput
+                className="w-full bg-gray-100 rounded-xl px-4 py-3"
+                placeholder="Inserisci il tuo username"
+                value={username}
+                onChangeText={setUsername}
               />
             </View>
 

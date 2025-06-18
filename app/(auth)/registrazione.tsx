@@ -8,7 +8,8 @@ export default function Registrazione() {
   const router = useRouter();
   const [nome, setNome] = useState('');
   const [cognome, setCognome] = useState('');
-  const [dataNascita, setDataNascita] = useState(new Date());
+  //const [dataNascita, setDataNascita] = useState(new Date());
+  const [username, setusername] = useState("");
   const [email, setEmail] = useState('');
   const [emailParente, setEmailParente] = useState('');
   const [password, setPassword] = useState('');
@@ -43,9 +44,13 @@ export default function Registrazione() {
       cognome,
       email,
       password,
-      email_parente: emailParente,
-      data_nascita: dataNascita.toISOString().split('T')[0] // opzionale se vuoi mandare anche la data
+      emailParente,
+      //dataNascita: dataNascita.toISOString().split('T')[0], // opzionale se vuoi mandare anche la data
+      username
     };
+
+    console.log("DTO inviato:", JSON.stringify(registrationDto, null, 2));
+
 
     try {
       const response = await fetch(invokeURL + "/registration", {
@@ -61,10 +66,11 @@ export default function Registrazione() {
         setError('Registrazione fallita');
         return;
       }
-
+      const info = await response.json()
+      const { message } = info
       Alert.alert(
         'Successo',
-        'Registrazione completata con successo',
+        message,
         [
           {
             text: 'OK',
@@ -82,7 +88,7 @@ export default function Registrazione() {
   const onDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      setDataNascita(selectedDate);
+      //setDataNascita(selectedDate);
     }
   };
 
@@ -117,13 +123,24 @@ export default function Registrazione() {
             </View>
 
             <View>
+              <Text className="text-secondary mb-2 text-base">Username *</Text>
+              <TextInput
+                className="w-full bg-gray-100 rounded-xl px-4 py-3"
+                placeholder="Inserisci il tuo username"
+                value={username}
+                onChangeText={setusername}
+              />
+            </View>
+
+            <View>
               <Text className="text-secondary mb-2 text-base">Data di nascita *</Text>
               <TouchableOpacity
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text className="text-secondary">{dataNascita.toLocaleDateString()}</Text>
               </TouchableOpacity>
+              {/*<Text className="text-secondary">{dataNascita.toLocaleDateString()}</Text>*/}
+              {/*</TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
                   value={dataNascita}
@@ -134,7 +151,7 @@ export default function Registrazione() {
                   themeVariant="light"
                   accentColor="#0073ff"
                 />
-              )}
+              )*/}
             </View>
 
             <View>
