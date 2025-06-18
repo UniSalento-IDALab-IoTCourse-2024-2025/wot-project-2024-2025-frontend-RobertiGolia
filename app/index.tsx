@@ -16,16 +16,7 @@ export default function SelectRole() {
           className="w-full bg-[#0073ff] py-4 rounded-xl items-center"
         >
           <Text className="text-white text-lg font-semibold">
-            Sono un Cliente
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => router.push('/(auth)/driver-login')}
-          className="w-full border-2 border-[#0073ff] py-4 rounded-xl items-center"
-        >
-          <Text className="text-[#0073ff] text-lg font-semibold">
-            Sono un Autista
+            ENTRA
           </Text>
         </TouchableOpacity>
       </View>

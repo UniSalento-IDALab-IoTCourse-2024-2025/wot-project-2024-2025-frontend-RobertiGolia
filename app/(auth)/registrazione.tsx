@@ -13,8 +13,10 @@ export default function Registrazione() {
   const [emailParente, setEmailParente] = useState('');
   const [password, setPassword] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [error, setError] = useState('')
+  const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
 
-  const handleRegistrazione = () => {
+  const handleRegistrazione = async () => {
     if (!nome || !cognome || !email || !password) {
       Alert.alert('Errore', 'Per favore compila tutti i campi obbligatori');
       return;
@@ -36,25 +38,45 @@ export default function Registrazione() {
       return;
     }
 
-    addUser({
+    const registrationDto = {
       nome,
       cognome,
-      dataNascita,
       email,
-      emailParente: emailParente || undefined,
-      password
-    });
+      password,
+      email_parente: emailParente,
+      data_nascita: dataNascita.toISOString().split('T')[0] // opzionale se vuoi mandare anche la data
+    };
 
-    Alert.alert(
-      'Successo',
-      'Registrazione completata con successo',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.push('/(auth)/login')
-        }
-      ]
-    );
+    try {
+      const response = await fetch(invokeURL + "/registration", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registrationDto)
+      });
+
+      if (!response.ok) {
+        console.log('ricevuto HTTP status ' + response.status);
+        setError('Registrazione fallita');
+        return;
+      }
+
+      Alert.alert(
+        'Successo',
+        'Registrazione completata con successo',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.push('/login')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Errore durante la registrazione:", error);
+      Alert.alert('Errore', 'Errore di rete o del server');
+    }
+
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -96,7 +118,7 @@ export default function Registrazione() {
 
             <View>
               <Text className="text-secondary mb-2 text-base">Data di nascita *</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
@@ -161,11 +183,20 @@ export default function Registrazione() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
+            onPress={() => router.push('/login')}
             className="items-center mt-4"
           >
             <Text className="text-[#0073ff] text-base">
               Hai già un account? Accedi
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/driver-registration')}
+            className="items-center mt-4"
+          >
+            <Text className="text-[#0073ff] text-base">
+              Diventa un volontario
             </Text>
           </TouchableOpacity>
         </View>

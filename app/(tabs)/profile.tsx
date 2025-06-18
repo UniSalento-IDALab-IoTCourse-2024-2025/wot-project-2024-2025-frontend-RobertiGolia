@@ -4,78 +4,82 @@ import { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Header from "../../components/Header";
 import { clearCurrentUser, getCurrentUser } from "../../constants/currentUser";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function Profile() {
   const router = useRouter();
   const currentUser = getCurrentUser();
 
-  useEffect(() => {
-    if (!currentUser) {
-      router.replace('/');
-    }
-  }, [currentUser]);
-
-  if (!currentUser) {
-    return null;
-  }
+  
 
   const handleLogout = async () => {
     clearCurrentUser();
     // Forziamo un reload completo dell'app
     try {
-      await Updates.reloadAsync();
+      //await Updates.reloadAsync();
+      AsyncStorage.removeItem('nome')
+      AsyncStorage.removeItem('ruolo')
+      AsyncStorage.removeItem('idUsr')
+      AsyncStorage.removeItem('email')
+      AsyncStorage.removeItem('data_nascita')
+      router.replace('/(auth)/login')
     } catch (error) {
-      // Se il reload non funziona, facciamo fallback sul replace
-      router.replace('/');
+      console.log(error)
+      
     }
   };
 
+  const handleAutista = async () => {
+    try {
+      const role = await AsyncStorage.getItem("ruolo");
+      if (role === "autista") {
+        console.log(role);
+      }
+    } catch (error) {
+      console.error("Errore durante il recupero del ruolo:", error);
+    }
+  };
+  
   return (
-    <View className="flex-1 bg-white">
-      <Header />
-      <View className="flex-1 p-6">
-        <Text className="text-3xl font-bold text-secondary mb-8">Il tuo profilo</Text>
-        
-        <View className="space-y-4 gap-4">
-          <View className="bg-gray-100 p-4 rounded-xl">
-            <Text className="text-gray-500 text-sm">Nome</Text>
-            <Text className="text-secondary text-lg">{currentUser.nome}</Text>
-          </View>
+    <GestureHandlerRootView>
+      <View className="flex-1 bg-white">
+        <Header />
+        <View className="flex-1 p-6">
+          <Text className="text-3xl font-bold text-secondary mb-8">Il tuo profilo</Text>
 
-          <View className="bg-gray-100 p-4 rounded-xl">
-            <Text className="text-gray-500 text-sm">Cognome</Text>
-            <Text className="text-secondary text-lg">{currentUser.cognome}</Text>
-          </View>
-
-          <View className="bg-gray-100 p-4 rounded-xl">
-            <Text className="text-gray-500 text-sm">Data di nascita</Text>
-            <Text className="text-secondary text-lg">
-              {currentUser.dataNascita.toLocaleDateString()}
-            </Text>
-          </View>
-
-          <View className="bg-gray-100 p-4 rounded-xl">
-            <Text className="text-gray-500 text-sm">Email</Text>
-            <Text className="text-secondary text-lg">{currentUser.email}</Text>
-          </View>
-
-          {currentUser.emailParente && (
+          <View className="space-y-4 gap-4">
             <View className="bg-gray-100 p-4 rounded-xl">
-              <Text className="text-gray-500 text-sm">Email del parente</Text>
-              <Text className="text-secondary text-lg">{currentUser.emailParente}</Text>
-            </View>
-          )}
-        </View>
+              <Text className="text-gray-500 text-sm">Nome</Text>
+              <Text className="text-secondary text-lg">{AsyncStorage.getItem('nome')}</Text>
+              
 
-        <TouchableOpacity
-          onPress={handleLogout}
-          className="w-full bg-red-500 py-4 rounded-xl items-center mt-8"
-        >
-          <Text className="text-white text-lg font-semibold">
-            Disconnetti
-          </Text>
-        </TouchableOpacity>
+            </View>
+
+            <View className="bg-gray-100 p-4 rounded-xl">
+              <Text className="text-gray-500 text-sm">Cognome</Text>
+              <Text className="text-secondary text-lg">{AsyncStorage.getItem('cognome')}</Text>
+            </View>
+
+            
+
+            <View className="bg-gray-100 p-4 rounded-xl">
+              <Text className="text-gray-500 text-sm">Email</Text>
+              <Text className="text-secondary text-lg">{AsyncStorage.getItem('email')}</Text>
+            </View>
+            
+          </View>
+
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="w-full bg-red-500 py-4 rounded-xl items-center mt-8"
+          >
+            <Text className="text-white text-lg font-semibold">
+              Disconnetti
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }

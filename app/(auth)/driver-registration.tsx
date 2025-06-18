@@ -1,6 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { RadioButton } from 'react-native-paper';
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { addDriver } from '../../constants/drivers';
 
@@ -11,47 +12,78 @@ export default function DriverRegistration() {
   const [dataNascita, setDataNascita] = useState(new Date());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [veicolo, setVeicolo] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [veicolo, setVeicolo] = useState('')
+  const [disponibile, setDisponibile] = useState(true)
+  const [ruolo, setRuolo] = useState("autista")
+  const [checked, setChecked] = React.useState('first');
+  const [error, setError] = useState('')
 
-  const handleRegistrazione = () => {
-    if (!nome || !cognome || !email || !password || !veicolo) {
+  const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
+
+  const handleRegistrazione = async () => {
+    if (!nome || !cognome || !email || !password) {
       Alert.alert('Errore', 'Per favore compila tutti i campi obbligatori');
       return;
     }
 
-    // Validazione email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Errore', 'Inserisci un indirizzo email valido');
       return;
     }
 
-    // Validazione password minimo 6 caratteri
+    if (veicolo == null) {
+      Alert.alert('Errore', 'Veicolo non valido');
+      return;
+    }
+
     if (password.length < 6) {
       Alert.alert('Errore', 'La password deve contenere almeno 6 caratteri');
       return;
     }
 
-    addDriver({
+    const registrationDto = {
       nome,
       cognome,
-      dataNascita,
       email,
       password,
-      veicolo
-    });
+      veicolo,
+      disponibile,
+      ruolo,
+      data_nascita: dataNascita.toISOString().split('T')[0] // opzionale se vuoi mandare anche la data
+    };
 
-    Alert.alert(
-      'Successo',
-      'Registrazione completata con successo',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.push('/(auth)/driver-login')
-        }
-      ]
-    );
+    try {
+      const response = await fetch(invokeURL + "/registration", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registrationDto)
+      });
+
+      if (!response.ok) {
+        console.log('ricevuto HTTP status ' + response.status);
+        setError('Registrazione fallita');
+        return;
+      }
+
+      Alert.alert(
+        'Successo',
+        'Registrazione completata con successo',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.push('/login')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Errore durante la registrazione:", error);
+      Alert.alert('Errore', 'Errore di rete o del server');
+    }
+
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -93,7 +125,7 @@ export default function DriverRegistration() {
 
             <View>
               <Text className="text-secondary mb-2 text-base">Data di nascita *</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
@@ -125,16 +157,6 @@ export default function DriverRegistration() {
             </View>
 
             <View>
-              <Text className="text-secondary mb-2 text-base">Veicolo *</Text>
-              <TextInput
-                className="w-full bg-gray-100 rounded-xl px-4 py-3"
-                placeholder="Inserisci il tuo veicolo (es. Fiat Panda)"
-                value={veicolo}
-                onChangeText={setVeicolo}
-              />
-            </View>
-
-            <View>
               <Text className="text-secondary mb-2 text-base">Password *</Text>
               <TextInput
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
@@ -143,6 +165,40 @@ export default function DriverRegistration() {
                 onChangeText={setPassword}
                 secureTextEntry
               />
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <RadioButton
+                value="macchina"
+                status={checked === 'primo' ? 'checked' : 'unchecked'}
+                onPress={() => {setChecked('primo'), setVeicolo("macchina")}}
+               
+              />
+              <TouchableOpacity onPress={() => setChecked('primo')}>
+                <Text style={{ fontSize: 16 }}>Macchina</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <RadioButton
+                value="autobus"
+                color="#0073ff"
+                status={checked === 'secondo' ? 'checked' : 'unchecked'}
+                onPress={() => {setChecked('secondo'), setVeicolo("autobus")}}
+              />
+              <TouchableOpacity onPress={() => setChecked('secondo')}>
+                <Text style={{ fontSize: 16 }}>Autobus</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <RadioButton
+                value="camper"
+                status={checked === 'terzo' ? 'checked' : 'unchecked'}
+                onPress={() => {setChecked('terzo'), setVeicolo("camper")}}
+              />
+              <TouchableOpacity onPress={() => setChecked('terzo')}>
+                <Text style={{ fontSize: 16 }}>Camper</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -156,7 +212,7 @@ export default function DriverRegistration() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => router.push('/(auth)/driver-login')}
+            onPress={() => router.push('/login')}
             className="items-center mt-4"
           >
             <Text className="text-[#0073ff] text-base">
