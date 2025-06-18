@@ -93,6 +93,7 @@ export default function Login() {
       const { id } = info
       const { nome } = info
       const { cognome } = info
+      const { username } = info
 
 
 
@@ -101,6 +102,7 @@ export default function Login() {
       await AsyncStorage.setItem('idUsr', id);
       await AsyncStorage.setItem('nome', nome);
       await AsyncStorage.setItem('cognome', cognome);
+      await AsyncStorage.setItem('username', username);
       router.replace('/(tabs)/profile');
       
 

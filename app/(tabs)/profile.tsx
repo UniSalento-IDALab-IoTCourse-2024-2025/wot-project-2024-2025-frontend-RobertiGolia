@@ -23,6 +23,8 @@ export default function Profile() {
       AsyncStorage.removeItem('idUsr')
       AsyncStorage.removeItem('email')
       AsyncStorage.removeItem('data_nascita')
+      AsyncStorage.removeItem('username')
+      AsyncStorage.removeItem('cognome')
       router.replace('/(auth)/login')
     } catch (error) {
       console.log(error)
@@ -66,6 +68,11 @@ export default function Profile() {
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Email</Text>
               <Text className="text-secondary text-lg">{AsyncStorage.getItem('email')}</Text>
+            </View>
+
+            <View className="bg-gray-100 p-4 rounded-xl">
+              <Text className="text-gray-500 text-sm">Username</Text>
+              <Text className="text-secondary text-lg">{AsyncStorage.getItem('username')}</Text>
             </View>
             
           </View>
