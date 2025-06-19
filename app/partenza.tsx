@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, Alert } from "react-native";
+import { Text, View, TouchableOpacity, Alert, TextInput } from "react-native";
 import Header from "@/components/Header";
 import React, {useState} from "react";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -35,83 +35,21 @@ export default function Partenza() {
         <View className="space-y-4">
           <View>
             <Text className="text-secondary mb-2 text-base">Partenza</Text>
-            <GooglePlacesAutocomplete
+            <TextInput
+              className="h-12 bg-gray-100 rounded-xl px-4 text-base mb-2"
               placeholder="Inserisci la città di partenza"
-              onPress={(data, details = null) => {
-                setPartenza(data.description);
-              }}
-              query={{
-                key: 'AIzaSyCjggjjUtvpTPSr0nPMs-1jhTvcwwBmWqQ',
-                language: 'it',
-                types: 'address'
-              }}
-              styles={{
-                container: {
-                  flex: 0,
-                },
-                textInput: {
-                  height: 48,
-                  backgroundColor: '#F3F4F6',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  fontSize: 16,
-                },
-                listView: {
-                  backgroundColor: 'white',
-                  borderRadius: 12,
-                  marginTop: 4,
-                  elevation: 3,
-                  zIndex: 1000,
-                },
-                row: {
-                  padding: 13,
-                  height: 44,
-                },
-                description: {
-                  fontSize: 14,
-                },
-              }}
+              value={partenza}
+              onChangeText={setPartenza}
             />
           </View>
 
           <View>
             <Text className="text-secondary mb-2 text-base">Arrivo</Text>
-            <GooglePlacesAutocomplete
+            <TextInput
+              className="h-12 bg-gray-100 rounded-xl px-4 text-base mb-2"
               placeholder="Inserisci la città di arrivo"
-              onPress={(data, details = null) => {
-                setArrivo(data.description);
-              }}
-              query={{
-                key: 'AIzaSyCjggjjUtvpTPSr0nPMs-1jhTvcwwBmWqQ',
-                language: 'it',
-                types: 'address'
-              }}
-              styles={{
-                container: {
-                  flex: 0,
-                },
-                textInput: {
-                  height: 48,
-                  backgroundColor: '#F3F4F6',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  fontSize: 16,
-                },
-                listView: {
-                  backgroundColor: 'white',
-                  borderRadius: 12,
-                  marginTop: 4,
-                  elevation: 3,
-                  zIndex: 1000,
-                },
-                row: {
-                  padding: 13,
-                  height: 44,
-                },
-                description: {
-                  fontSize: 14,
-                },
-              }}
+              value={arrivo}
+              onChangeText={setArrivo}
             />
           </View>
 

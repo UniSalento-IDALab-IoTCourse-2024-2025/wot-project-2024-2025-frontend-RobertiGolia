@@ -103,7 +103,11 @@ export default function Login() {
       await AsyncStorage.setItem('nome', nome);
       await AsyncStorage.setItem('cognome', cognome);
       await AsyncStorage.setItem('username', username);
-      router.replace('/(tabs)/profile');
+      if (ruolo === 'autista') {
+        router.replace('/driver-tabs/home');
+      } else {
+        router.replace('/(tabs)/profile');
+      }
       
 
     } catch (error) {
