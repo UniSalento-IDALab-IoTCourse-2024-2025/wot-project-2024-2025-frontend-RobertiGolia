@@ -82,7 +82,7 @@ export default function Chatbot() {
                   {!message.isUser && (
                     <TouchableOpacity 
                       className="mt-2 bg-[#0073ff] rounded-lg px-3 py-1 self-end"
-                      onPress={() => router.push("/partenza")}
+                      onPress={() => router.replace("/partenza")}
                     >
                       <Text className="text-white text-sm">Continua</Text>
                     </TouchableOpacity>
