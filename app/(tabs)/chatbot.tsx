@@ -2,6 +2,7 @@ import { Text, View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingVi
 import Header from "../../components/Header";
 import { useState, useRef } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Chatbot() {
   const router = useRouter();
@@ -23,7 +24,6 @@ export default function Chatbot() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-          //'Authorization': 'Bearer '+jwt
         },
       });
 
@@ -34,6 +34,7 @@ export default function Chatbot() {
       const data = await response.json();
       const { output } = data;
       setOutput(output);
+      await AsyncStorage.setItem('usernameAutista', output)
 
       setTimeout(() => {
         setMessages(prev => [...prev, { text: output, isUser: false }]);

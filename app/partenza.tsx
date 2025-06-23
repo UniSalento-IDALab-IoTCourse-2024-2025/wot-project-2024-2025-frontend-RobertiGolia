@@ -1,15 +1,24 @@
 import { Text, View, TouchableOpacity, Alert } from "react-native";
 import Header from "@/components/Header";
-import React, { useState } from "react";
+import React, { use, useState } from "react";
+import { Stack, useRouter } from 'expo-router';
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import "react-native-get-random-values";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function Partenza() {
-  const [partenza, setPartenza] = useState('');
-  const [arrivo, setArrivo] = useState('');
-  const handlePrenota = () => {
-    if (!partenza || !arrivo) {
+  const router = useRouter();
+  const [addA, setAddA] = useState('')
+  const [addB, setAddB] = useState('')
+  const [id, setId] = useState('')
+  const [error, setError] = useState('')
+
+
+  const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
+
+  const handlePrenota = async () => {
+    if (!addA || !addB) {
       Alert.alert(
         "Errore",
         "Per favore, seleziona sia il punto di partenza che quello di arrivo",
@@ -17,12 +26,71 @@ export default function Partenza() {
       );
       return;
     }
+    const tripDTO = {
+      addA,
+      addB,
+    };
 
-    Alert.alert(
-      "Prenotazione",
-      "Prenotazione effettuata da " + partenza + " a " + arrivo,
-      [{ text: "OK" }]
-    );
+    //fare la chiamata per vedere quale id corrisponde username
+    try {
+
+      const getAutista = await fetch(invokeURL + "/username/" + await AsyncStorage.getItem('usernameAutista'), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await getAutista.json()
+
+      const { id } = data
+
+      console.log(id)
+      const token = await AsyncStorage.getItem('authToken');
+
+      // Verifica che idAutista non sia nullo o vuoto
+      if (!id) {
+        console.error('idAutista mancante o nullo');
+        setError('ID Autista non valido');
+        return;
+      }
+
+      // Imposta gli headers
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'idAutista': id
+      };
+
+      const response = await fetch(invokeURL + "/api/trip/reserve", {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(tripDTO)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.log('Errore HTTP ' + response.status + ': ' + errText);
+        setError('Registrazione fallita');
+        return;
+      }
+
+
+      Alert.alert(
+        'Successo',
+        'Registrazione completata con successo',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.push('/login')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Errore durante la registrazione:", error);
+      Alert.alert('Errore', 'Errore di rete o del server');
+    }
+
   };
 
 
@@ -41,7 +109,7 @@ export default function Partenza() {
               // Required props
               placeholder="Partenza"
               query={{
-                key: process.env.NEXT_PUBLIC_GOOGLE_API_KEY, // REPLACE WITH YOUR ACTUAL API KEY
+                key: 'AIzaSyCjggjjUtvpTPSr0nPMs-1jhTvcwwBmWqQ', // REPLACE WITH YOUR ACTUAL API KEY
                 language: 'it',
                 types: 'geocode',
               }}
@@ -73,7 +141,7 @@ export default function Partenza() {
               onNotFound={() => { }}
               onPress={(data, details = null) => {
                 // Handle selection
-                setPartenza(data.description)
+                setAddA(data.description)
               }}
               onTimeout={() =>
                 console.warn('google places autocomplete: request timeout')
@@ -130,7 +198,7 @@ export default function Partenza() {
                 // Required props
                 placeholder="Arrivo"
                 query={{
-                  key: process.env.NEXT_PUBLIC_GOOGLE_API_KEY, // REPLACE WITH YOUR ACTUAL API KEY
+                  key: process.env.GOOGLE_MAPS_API_KEY, // REPLACE WITH YOUR ACTUAL API KEY
                   language: 'it',
                   types: 'geocode',
                 }}
@@ -159,14 +227,14 @@ export default function Partenza() {
                 onNotFound={() => { }}
                 onPress={(data, details = null) => {
                   // Handle selection
-                  setArrivo(data.description)
+                  setAddB(data.description)
                 }}
                 onTimeout={() =>
                   console.warn('google places autocomplete: request timeout')
                 }
                 predefinedPlaces={[]}
                 predefinedPlacesAlwaysVisible={false}
-                
+
                 suppressDefaultStyles={false}
                 textInputHide={false}
 
