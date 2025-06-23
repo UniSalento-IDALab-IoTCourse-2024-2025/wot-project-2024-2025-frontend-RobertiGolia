@@ -75,14 +75,17 @@ export default function Partenza() {
         return;
       }
 
+      const date = await response.json()
+      const { message } = date
+      const { result } = date
 
       Alert.alert(
-        'Successo',
-        'Registrazione completata con successo',
+        "Risposta",
+        message,
         [
           {
             text: 'OK',
-            onPress: () => router.push('/login')
+            onPress: () => router.push('/corse')
           }
         ]
       );
@@ -198,7 +201,7 @@ export default function Partenza() {
                 // Required props
                 placeholder="Arrivo"
                 query={{
-                  key: process.env.GOOGLE_MAPS_API_KEY, // REPLACE WITH YOUR ACTUAL API KEY
+                  key: 'AIzaSyCjggjjUtvpTPSr0nPMs-1jhTvcwwBmWqQ', // REPLACE WITH YOUR ACTUAL API KEY
                   language: 'it',
                   types: 'geocode',
                 }}
