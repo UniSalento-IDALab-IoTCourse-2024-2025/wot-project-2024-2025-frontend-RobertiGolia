@@ -7,13 +7,11 @@
     "icon": "./assets/images/icon5.png",
     "scheme": "progettoiot",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "icon": "./assets/images/icon6.png",
       "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "Questa app necessita dell'accesso alla fotocamera per scansionare i QR code"
-      },
+      "infoPlist": {},
       "bundleIdentifier": "com.anonymous.ProgettoIoT"
     },
     "android": {
@@ -23,7 +21,6 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "CAMERA",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
@@ -39,12 +36,11 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "cameraPermission": "Questa app necessita dell'accesso alla fotocamera per scansionare i QR code.",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ],
-      "expo-barcode-scanner"
+      ]
     ],
     "experiments": {
       "typedRoutes": true

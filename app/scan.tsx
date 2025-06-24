@@ -1,31 +1,105 @@
-
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import Header from "../components/Header";
+import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
+import { useState } from 'react';
+import { router } from 'expo-router';
 
 const ScanScreen = () => {
-  const handleStartRide = () => {
-    Alert.alert('Notifica', 'Corsa avviata');
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+
+  const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
+    setScanned(true);
+    if (scanningResult.data) {
+        Alert.alert('Codice QR scansionato!', `Dati: ${scanningResult.data}`, [
+            { text: 'OK', onPress: () => router.push('/ride-booked') }
+        ]);
+    }
   };
 
-  return (
-    <View className="flex-1 bg-white">
-      <Header />
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-2xl text-center text-secondary mb-8">
-          Stai per partire
-        </Text>
-        <TouchableOpacity
-          onPress={handleStartRide}
-          className="bg-[#0073ff] px-6 py-4 rounded-xl"
-        >
-          <Text className="text-white text-lg font-semibold">
-            Inizio corsa
-          </Text>
-        </TouchableOpacity>
+  if (!permission) {
+    // Camera permissions are still loading.
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>Abbiamo bisogno del tuo permesso per mostrare la fotocamera</Text>
+        <TouchableOpacity style={styles.button} onPress={requestPermission}><Text style={styles.buttonText}>Concedi permesso</Text></TouchableOpacity>
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header />
+      <Text style={styles.title}>
+        Scannerizza il codice QR che troverai a bordo del veicolo
+      </Text>
+      <View style={styles.cameraContainer}>
+        <CameraView
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          style={styles.camera}
+        />
+      </View>
+      {scanned && <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}><Text style={styles.buttonText}>Tocca per scansionare di nuovo</Text></TouchableOpacity>}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+    title: {
+        fontSize: 20,
+        textAlign: 'center',
+        color: '#003366', // secondary color
+        marginVertical: 20,
+        paddingHorizontal: 20,
+    },
+    cameraContainer: {
+        width: 300,
+        height: 300,
+        alignSelf: 'center',
+        marginVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: '#003366', // secondary color
+    },
+    camera: {
+        flex: 1,
+    },
+    button: {
+        backgroundColor: '#FFD700', // primary color
+        padding: 15,
+        borderRadius: 10,
+        margin: 20,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#003366', // secondary color
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    permissionContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        padding: 20,
+    },
+    permissionText: {
+        textAlign: 'center',
+        fontSize: 18,
+        marginBottom: 20,
+        color: '#003366',
+    }
+})
 
 export default ScanScreen;
 

@@ -85,7 +85,7 @@ export default function Partenza() {
         [
           {
             text: 'OK',
-            onPress: () => router.push('/corse')
+            onPress: () => router.push('./scan')
           }
         ]
       );
