@@ -9,6 +9,8 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [inputText, setInputText] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
+  const [availableDrivers, setAvailableDrivers] = useState<string[]>([]);
+  const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
   const [error, setError] = useState('');
   const [output, setOutput] = useState('');
@@ -18,7 +20,7 @@ export default function Chatbot() {
     try {
       // Aggiungo il messaggio dell'utente alla chat
       setMessages(prev => [...prev, { text: inputText, isUser: true }]);
-      
+
       //Chiamata API
       const response = await fetch(invokeURL + "/run-model/" + inputText, {
         method: 'GET',
@@ -32,15 +34,23 @@ export default function Chatbot() {
         setError('Credenziali non valide')
       }
       const data = await response.json();
-      const { output } = data;
-      setOutput(output);
-      await AsyncStorage.setItem('usernameAutista', output)
+      const { output: result } = data; // opzionale se vuoi anche il messaggio completo
+      const driversList = data?.output?.drivers;
+
+      if (Array.isArray(driversList) && driversList.length > 0) {
+        setAvailableDrivers(driversList);
+        console.log(driversList)
+        setOutput("Seleziona un autista tra quelli disponibili:");
+      } else {
+        setOutput("Nessun autista trovato.");
+        setAvailableDrivers([]);
+      }
 
       setTimeout(() => {
         setMessages(prev => [...prev, { text: output, isUser: false }]);
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 500);
-      
+
       setInputText("");
 
 
@@ -50,7 +60,14 @@ export default function Chatbot() {
     }
   };
 
+  const formatDriverName = (fullName: string) => {
+    const parts = fullName.trim().toLowerCase().split(" ");
+    if (parts.length < 2) return fullName.toLowerCase().replace(/\s/g, "");
+    const initial = parts[0][0];
+    const lastName = parts.slice(1).join("");
 
+    return `${initial}${lastName}`;
+  };
   return (
     <View className="flex-1 bg-white">
       <Header />
@@ -59,40 +76,54 @@ export default function Chatbot() {
           Chatbot
         </Text>
 
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
           keyboardVerticalOffset={Platform.OS === "ios" ? 130 : 0}
         >
           <View className="flex-1 bg-gray-100 rounded-xl p-4 mb-4">
-            <ScrollView 
+            <ScrollView
               ref={scrollViewRef}
               className="flex-1"
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             >
               {messages.map((message, index) => (
-                <View 
-                  key={index} 
-                  className={`mb-2 p-3 rounded-xl max-w-[80%] ${
-                    message.isUser ? "bg-[#0073ff] self-end" : "bg-white self-start"
-                  }`}
+                <View
+                  key={index}
+                  className={`mb-2 p-3 rounded-xl max-w-[80%] ${message.isUser ? "bg-[#0073ff] self-end" : "bg-white self-start"
+                    }`}
                 >
                   <Text className={message.isUser ? "text-white" : "text-secondary"}>
                     {message.text}
                   </Text>
-                  {!message.isUser && (
-                    <TouchableOpacity 
-                      className="mt-2 bg-[#0073ff] rounded-lg px-3 py-1 self-end"
-                      onPress={() => router.replace("/partenza")}
-                    >
-                      <Text className="text-white text-sm">Continua</Text>
-                    </TouchableOpacity>
+                  {!message.isUser && index === messages.length - 1 && availableDrivers.length > 0 && (
+                    <View className="mt-3">
+                      {availableDrivers.map((driver, i) => {
+                        const formatted = formatDriverName(driver);
+                        console.log("Driver formattato:", formatted);
+                        return (
+                          <TouchableOpacity
+                            key={i}
+                            className={`px-4 py-2 rounded-xl mb-2 ${selectedDriver === formatted ? "bg-green-500" : "bg-[#0073ff]"}`}
+                            onPress={async () => {
+                              setSelectedDriver(formatted);
+                              await AsyncStorage.setItem('usernameAutista', formatted);
+                              router.replace("/partenza");
+                            }}
+                          >
+                            <Text className="text-white text-center">{formatted}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+
+                    </View>
                   )}
+
                 </View>
               ))}
             </ScrollView>
           </View>
-          
+
           <View className="flex-row mb-6">
             <TextInput
               className="flex-1 border border-gray-300 rounded-xl px-4 py-2 mr-2 bg-white"
@@ -101,7 +132,7 @@ export default function Chatbot() {
               onChangeText={setInputText}
               onSubmitEditing={handleSendMessage}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               className="bg-[#0073ff] rounded-xl px-4 justify-center"
               onPress={handleSendMessage}
             >
