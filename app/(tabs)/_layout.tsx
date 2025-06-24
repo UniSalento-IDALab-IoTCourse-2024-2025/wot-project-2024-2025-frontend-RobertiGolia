@@ -6,14 +6,14 @@ export default function TabsLayout() {
     return (
         <Tabs screenOptions={{ headerShown: false }}>
             <Tabs.Screen
-                name="profile"
+                name="ride-booked"
                 options={{
-                    title: "Profilo",
+                    title: "Prenotate",
                     tabBarIcon: ({ color, size, focused }) => (
                         <Image
-                            source={require('../../assets/icons/person2.png')}
-                            style={{ width: size, height: size, tintColor: color }}
-                            resizeMode="contain"
+                        source={require('../../assets/icons/home.png')}
+                        style={{ width: size, height: size, tintColor: color }}
+                        resizeMode="contain"
                         />
                     ),
                 }}
@@ -31,6 +31,21 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: "Profilo",
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Image
+                            source={require('../../assets/icons/person2.png')}
+                            style={{ width: size, height: size, tintColor: color }}
+                            resizeMode="contain"
+                        />
+                    ),
+                }}
+            />
+            
             <Tabs.Screen
                 name="about"
                 options={{
@@ -44,6 +59,7 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+            
         </Tabs>
     );
 }

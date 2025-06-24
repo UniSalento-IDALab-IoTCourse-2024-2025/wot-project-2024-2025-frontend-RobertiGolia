@@ -14,6 +14,7 @@ export default function SelectRole() {
         <TouchableOpacity
           //qui in replace() inserire la pagina di login
           onPress={() => router.replace('/(auth)/login')}
+          //onPress={() => router.replace('/(tabs)/ride-booked')}
           className="w-full bg-[#0073ff] py-4 rounded-xl items-center"
         >
           <Text className="text-white text-lg font-semibold">
