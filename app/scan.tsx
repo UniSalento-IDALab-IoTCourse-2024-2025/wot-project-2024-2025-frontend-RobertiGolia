@@ -1,32 +1,44 @@
 import { Alert, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import Header from "../components/Header";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 
 const ScanScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-
+  const scanning = useRef(false); // flag persistente per bloccare scansioni multiple
+  
   const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
-    setScanned(true);
-    if (scanningResult.data) {
-        try {
-          const data = JSON.parse(scanningResult.data);
-          console.log("id:", data.id);
-          console.log("username:", data.username);
-          console.log("nome:", data.nome)
-          console.log("cognome:", data.cognome)
-          Alert.alert(
-            "Autista",
-            `ID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`
-          );
-        } catch (e) {
-          Alert.alert("Errore", "Il QR code non contiene un JSON valido");
-        }
-        
+    if (scanning.current) return; // blocca subito se già in scansione
+
+    scanning.current = true; // blocca altre scansioni
+
+    try {
+      const data = JSON.parse(scanningResult.data);
+      Alert.alert(
+        "Autista",
+        `ID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`,
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setScanned(true);
+              scanning.current = false; // reset flag per future scansioni (se necessario)
+              router.replace("/mappa");
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (e) {
+      Alert.alert("Errore", "Il QR code non contiene un JSON valido");
+      scanning.current = false; // reset flag per nuova scansione
+      setScanned(false);
     }
   };
+  
+  
 
   if (!permission) {
     // Camera permissions are still loading.

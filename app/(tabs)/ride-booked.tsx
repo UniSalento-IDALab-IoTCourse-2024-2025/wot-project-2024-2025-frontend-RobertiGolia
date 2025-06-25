@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import Header from "../../components/Header";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RideBooked() {
@@ -12,8 +12,10 @@ export default function RideBooked() {
     addB: string;
     idUser: string;
     idAutista: string;
+    usernameAutista: string
   };
   const [corseUtente, setCorseUtente] = useState<Ride[]>([]);
+  const [usernameAutista, setUserNameAutista] = useState<string[]>([])
   const [userName, setUserName] = useState<string | null>(null);
   const [error, setError] = useState('');
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
@@ -42,9 +44,35 @@ export default function RideBooked() {
 
       if (Array.isArray(usersList)) {
         setCorseUtente(usersList);
+
+        // Dopo aver impostato le corse, recupera gli username
+        const tempUsernames: string[] = [];
+
+        for (let i = 0; i < usersList.length; i++) {
+          const ride = usersList[i];
+          const getUsernameAutista = await fetch(`${invokeURL}/users/${ride.idAutista}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!getUsernameAutista.ok) {
+            console.log('Errore nel recupero username autista:', getUsernameAutista.status);
+            tempUsernames.push("N/D");
+            continue;
+          }
+
+          const info = await getUsernameAutista.json();
+          const { username } = info;
+          tempUsernames.push(username || "N/D");
+        }
+
+        setUserNameAutista(tempUsernames);
       } else {
         setError("Nessuna corsa trovata.");
       }
+
     } catch (err) {
       console.error("Errore durante il recupero delle corse:", err);
       setError("Errore di rete");
@@ -61,7 +89,7 @@ export default function RideBooked() {
       loadData();
     }, [])
   );
-  
+
 
   return (
     <View className="flex-1 bg-white">
@@ -87,7 +115,7 @@ export default function RideBooked() {
                 {/* Header tabella */}
                 <View className="border-b-2 border-secondary mb-2">
                   <View className="flex-row py-4">
-                    {["Autista", "Data", "Partenza", "Destinazione"].map((col) => (
+                    {["Autista", "Parti", "Data", "Partenza", "Destinazione"].map((col) => (
                       <React.Fragment key={col}>
                         <View style={{ width: col === "Partenza" || col === "Destinazione" ? 150 : 120 }} className="px-2">
                           <Text className="font-bold text-secondary text-center">{col}</Text>
@@ -103,11 +131,25 @@ export default function RideBooked() {
                   <View key={ride.id || index} className="border-b border-gray-200">
                     <View className="flex-row py-4">
                       <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">{ride.idAutista || "N/D"}</Text>
+                        <Text className="text-secondary text-center">{usernameAutista[index] || "N/D"}</Text>
+                      </View>
+                      <View className="w-[1] bg-gray-200" />
+                      <View style={{ width: 100 }} className="px-2 items-center justify-center">
+                        <TouchableOpacity
+                          onPress={() => router.replace('/scan')}
+                          style={{
+                            backgroundColor: "#22c55e",
+                            paddingVertical: 6,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Parti</Text>
+                        </TouchableOpacity>
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">25/06/2025</Text> {/* Da sostituire con data reale */}
+                        <Text className="text-secondary text-center">25/06/2025</Text>
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 150 }} className="px-2">
@@ -117,9 +159,11 @@ export default function RideBooked() {
                       <View style={{ width: 150 }} className="px-2">
                         <Text className="text-secondary text-center">{ride.addB}</Text>
                       </View>
+
                     </View>
                   </View>
                 ))}
+
               </View>
             </ScrollView>
           </ScrollView>

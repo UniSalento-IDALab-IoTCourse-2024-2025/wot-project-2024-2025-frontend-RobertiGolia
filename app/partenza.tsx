@@ -85,7 +85,7 @@ export default function Partenza() {
         [
           {
             text: 'OK',
-            onPress: () => router.push('./scan')
+            onPress: () => router.push('/ride-booked')
           }
         ]
       );
