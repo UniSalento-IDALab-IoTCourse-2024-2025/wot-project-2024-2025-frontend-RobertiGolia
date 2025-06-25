@@ -19,6 +19,7 @@ export default function RideBooked() {
   const [usernameAutista, setUserNameAutista] = useState<string[]>([])
   const [userName, setUserName] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [tempDate, setTempDate] = useState<string[]>([])
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
 
   const handleCorseByIdUser = async () => {
@@ -66,6 +67,8 @@ export default function RideBooked() {
 
           const info = await getUsernameAutista.json();
           const { username } = info;
+          const { data } = info
+          tempDate.push(data || "N/D")
           tempUsernames.push(username || "N/D");
         }
 
@@ -191,7 +194,7 @@ export default function RideBooked() {
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">25/06/2025</Text>
+                        <Text className="text-secondary text-center">{tempDate[index]}</Text>
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 150 }} className="px-2">
