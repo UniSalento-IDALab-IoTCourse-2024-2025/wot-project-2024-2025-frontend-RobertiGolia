@@ -1,7 +1,13 @@
 import * as Location from 'expo-location';
 import React, { Component } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Button } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { NavigationProp } from "@react-navigation/native";
+import { router } from 'expo-router';
+
+type Props = {
+  navigation: NavigationProp<any>;
+};
 
 type State = {
   latitude: number | null;
@@ -9,8 +15,8 @@ type State = {
   error: string | null;
 };
 
-export default class Mappa extends Component<{}, State> {
-  constructor(props: {}) {
+export default class Mappa extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       latitude: null,
@@ -34,10 +40,15 @@ export default class Mappa extends Component<{}, State> {
   }
 
   render() {
-    const { latitude, longitude } = this.state;
+    const { latitude, longitude, error } = this.state;
     return (
       <View style={styles.container}>
-        {latitude && longitude ? (
+        <View style={styles.buttonContainer}>
+          <Button title="Torna indietro" onPress={() => router.replace('/(tabs)/ride-booked')} />
+        </View>
+        {error ? (
+          <Text>{error}</Text>
+        ) : latitude && longitude ? (
           <MapView
             style={styles.map}
             region={{
@@ -60,6 +71,17 @@ export default class Mappa extends Component<{}, State> {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  buttonContainer: {
+    marginTop: 50,
+    zIndex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    elevation: 5,
   },
   map: {
     ...StyleSheet.absoluteFillObject,

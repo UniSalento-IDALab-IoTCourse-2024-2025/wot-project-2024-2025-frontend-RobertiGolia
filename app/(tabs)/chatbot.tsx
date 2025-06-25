@@ -40,10 +40,8 @@ export default function Chatbot() {
 
       const disponibili: string[] = [];
 
-      for (let i = 0; i < driversList.length; i++) {
+      for (let i = 0; i < driversList.length-1; i++) {
         const formatted = formatDriverName(driversList[i]);
-        console.log("nome e cognome formattato: " + formatted);
-        console.log(invokeURL + "/username/" + formatted)
         const getAutista = await fetch(invokeURL + "/username/" + formatted, {
           method: 'GET',
           headers: {

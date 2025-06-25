@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import Header from "../../components/Header";
 import { router, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -13,6 +13,7 @@ export default function RideBooked() {
     idUser: string;
     idAutista: string;
     usernameAutista: string
+    partito: boolean
   };
   const [corseUtente, setCorseUtente] = useState<Ride[]>([]);
   const [usernameAutista, setUserNameAutista] = useState<string[]>([])
@@ -79,6 +80,35 @@ export default function RideBooked() {
     }
   };
 
+  const handleStart = async (index : number) => {
+    try {
+      const userId = await AsyncStorage.getItem('idUsr');
+      console.log(userId)
+      if (!userId) return setError("Utente non identificato.");
+
+      const response = await fetch(invokeURL + "/api/trip/parti/" + corseUtente[index].id, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.log('HTTP status:', response.status);
+        setError('Errore nel recupero delle corse');
+        return;
+      }
+
+      const data = await response.json();
+      const { message } = data;
+      Alert.alert("Risposta", message)
+
+    } catch (err) {
+      console.error("Errore durante il recupero delle corse:", err);
+      setError("Errore di rete");
+    }
+  }
+
   useFocusEffect(
     React.useCallback(() => {
       const loadData = async () => {
@@ -135,17 +165,29 @@ export default function RideBooked() {
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 100 }} className="px-2 items-center justify-center">
-                        <TouchableOpacity
-                          onPress={() => router.replace('/scan')}
-                          style={{
-                            backgroundColor: "#22c55e",
-                            paddingVertical: 6,
-                            paddingHorizontal: 12,
-                            borderRadius: 8,
-                          }}
-                        >
-                          <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Parti</Text>
-                        </TouchableOpacity>
+                        {!ride.partito ? (
+                          <TouchableOpacity
+                            onPress={() => {
+                              handleStart(index);
+                              router.replace('/scan');
+                            }}
+                            style={{
+                              backgroundColor: "#22c55e",
+                              paddingVertical: 6,
+                              paddingHorizontal: 12,
+                              borderRadius: 8,
+                            }}
+                          >
+                            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>
+                              Parti
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <Text style={{ color: "#9ca3af", fontWeight: "bold", textAlign: "center" }}>
+                            In Corso
+                          </Text>
+                        )}
+
                       </View>
                       <View className="w-[1] bg-gray-200" />
                       <View style={{ width: 120 }} className="px-2">
