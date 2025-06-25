@@ -11,9 +11,20 @@ const ScanScreen = () => {
   const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
     setScanned(true);
     if (scanningResult.data) {
-        Alert.alert('Codice QR scansionato!', `Dati: ${scanningResult.data}`, [
-            { text: 'OK', onPress: () => router.push('/ride-booked') }
-        ]);
+        try {
+          const data = JSON.parse(scanningResult.data);
+          console.log("id:", data.id);
+          console.log("username:", data.username);
+          console.log("nome:", data.nome)
+          console.log("cognome:", data.cognome)
+          Alert.alert(
+            "Autista",
+            `ID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`
+          );
+        } catch (e) {
+          Alert.alert("Errore", "Il QR code non contiene un JSON valido");
+        }
+        
     }
   };
 

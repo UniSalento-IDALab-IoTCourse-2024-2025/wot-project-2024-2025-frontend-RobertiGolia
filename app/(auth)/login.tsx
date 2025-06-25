@@ -49,7 +49,7 @@ export default function Login() {
   };
   */
 
-//chiamta API per effettuare il LOGIN
+  //chiamta API per effettuare il LOGIN
   const handleLogin = async () => {
     try {
       //Chiamata API
@@ -71,7 +71,7 @@ export default function Login() {
       if (jwt) {
         try {
           await AsyncStorage.setItem('authToken', jwt);
-          
+
         } catch (e) {
           setError('Errore durante il salvataggio del token')
         }
@@ -108,7 +108,7 @@ export default function Login() {
       } else {
         router.replace('/(tabs)/profile');
       }
-      
+
 
     } catch (error) {
       console.error("Errore durante il login:", error);
@@ -119,61 +119,61 @@ export default function Login() {
   return (
     <>
       <GestureHandlerRootView>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-white p-6 justify-center">
-        <View className="space-y-6">
-          <Text className="text-3xl font-bold text-secondary mb-8 text-center">
-            Area Clienti
-          </Text>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 bg-white p-6 justify-center">
+          <View className="space-y-6">
+            <Text className="text-3xl font-bold text-secondary mb-8 text-center">
+              Area Clienti
+            </Text>
 
-          {error ? (
-            <Text className="text-red-500 text-center mb-4">{error}</Text>
-          ) : null}
+            {error ? (
+              <Text className="text-red-500 text-center mb-4">{error}</Text>
+            ) : null}
 
-          <View className="space-y-4">
-            <View>
-              <Text className="text-secondary mb-2 text-base">Email</Text>
-              <TextInput
-                className="w-full bg-gray-100 rounded-xl px-4 py-3"
-                placeholder="Inserisci la tua email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
+            <View className="space-y-4">
+              <View>
+                <Text className="text-secondary mb-2 text-base">Email</Text>
+                <TextInput
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3"
+                  placeholder="Inserisci la tua email"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+
+              <View>
+                <Text className="text-secondary mb-2 text-base">Password</Text>
+                <TextInput
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3"
+                  placeholder="Inserisci la tua password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+              </View>
             </View>
 
-            <View>
-              <Text className="text-secondary mb-2 text-base">Password</Text>
-              <TextInput
-                className="w-full bg-gray-100 rounded-xl px-4 py-3"
-                placeholder="Inserisci la tua password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
+            <TouchableOpacity
+              onPress={handleLogin}
+              className="w-full bg-[#0073ff] py-4 rounded-xl items-center mt-6"
+            >
+              <Text className="text-white text-lg font-semibold">
+                Accedi
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.replace('/registrazione')}
+              className="items-center mt-4"
+            >
+              <Text className="text-[#0073ff] text-base">
+                Non hai un account? Registrati
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            onPress={handleLogin}
-            className="w-full bg-[#0073ff] py-4 rounded-xl items-center mt-6"
-          >
-            <Text className="text-white text-lg font-semibold">
-              Accedi
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.replace('/registrazione')}
-            className="items-center mt-4"
-          >
-            <Text className="text-[#0073ff] text-base">
-              Non hai un account? Registrati
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
       </GestureHandlerRootView>
     </>
   );

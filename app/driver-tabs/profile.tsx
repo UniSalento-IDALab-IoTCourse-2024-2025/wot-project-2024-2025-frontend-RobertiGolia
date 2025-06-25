@@ -49,7 +49,10 @@ export default function Profile() {
         <Header />
         <View className="flex-1 p-6">
           <Text className="text-3xl font-bold text-secondary mb-8">Il tuo profilo</Text>
-
+          <View className="bg-gray-100 p-4 rounded-xl">
+              <Text className="text-gray-500 text-sm">ID</Text>
+              <Text className="text-secondary text-lg">{AsyncStorage.getItem('idUsr')}</Text>
+            </View>
           <View className="space-y-4 gap-4">
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Nome</Text>
