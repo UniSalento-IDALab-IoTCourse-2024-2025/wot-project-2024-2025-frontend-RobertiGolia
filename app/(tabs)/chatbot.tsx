@@ -12,16 +12,16 @@ export default function Chatbot() {
   const [availableDrivers, setAvailableDrivers] = useState<string[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
+  const [autistiDisponibili, setAutistiDisponibili] = useState<string[]>([]);
+
   const [error, setError] = useState('');
   const [output, setOutput] = useState('');
 
 
   const handleSendMessage = async () => {
     try {
-      // Aggiungo il messaggio dell'utente alla chat
       setMessages(prev => [...prev, { text: inputText, isUser: true }]);
 
-      //Chiamata API
       const response = await fetch(invokeURL + "/run-model/" + inputText, {
         method: 'GET',
         headers: {
@@ -31,19 +31,49 @@ export default function Chatbot() {
 
       if (!response.ok) {
         console.log('ricevuto HTTP status ' + response.status)
-        setError('Credenziali non valide')
+        setError('Credenziali non valide');
+        return;
       }
-      const data = await response.json();
-      const { output: result } = data; // opzionale se vuoi anche il messaggio completo
-      const driversList = data?.output?.drivers;
 
-      if (Array.isArray(driversList) && driversList.length > 0) {
-        setAvailableDrivers(driversList);
-        console.log(driversList)
+      const data = await response.json();
+      const driversList = data?.output?.drivers || [];
+
+      const disponibili: string[] = [];
+
+      for (let i = 0; i < driversList.length; i++) {
+        const formatted = formatDriverName(driversList[i]);
+        console.log("nome e cognome formattato: " + formatted);
+        console.log(invokeURL + "/username/" + formatted)
+        const getAutista = await fetch(invokeURL + "/username/" + formatted, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        });
+
+        if (!getAutista.ok) {
+          console.log('ricevuto HTTP status ' + getAutista.status);
+          setError('Credenziali non valide');
+          continue;
+        }
+
+        const autista = await getAutista.json();
+        const { disponibile } = autista;
+
+        if (disponibile) {
+          disponibili.push(formatted);
+        }
+      }
+
+      console.log("Autisti disponibili: " + disponibili.join(", "));
+      setAutistiDisponibili(disponibili);
+
+      if (disponibili.length > 0) {
+        setAvailableDrivers(disponibili);
         setOutput("Seleziona un autista tra quelli disponibili:");
       } else {
-        setOutput("Nessun autista trovato.");
         setAvailableDrivers([]);
+        setOutput("Nessun autista disponibile.");
       }
 
       setTimeout(() => {
@@ -53,12 +83,11 @@ export default function Chatbot() {
 
       setInputText("");
 
-
-
     } catch (error) {
       console.error("Errore durante il login:", error);
     }
   };
+
 
   const formatDriverName = (fullName: string) => {
     const parts = fullName.trim().toLowerCase().split(" ");
