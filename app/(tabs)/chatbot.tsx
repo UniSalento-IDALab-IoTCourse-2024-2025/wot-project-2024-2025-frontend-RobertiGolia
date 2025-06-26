@@ -29,6 +29,7 @@ export default function Chatbot() {
         },
       });
 
+      
       if (!response.ok) {
         console.log('ricevuto HTTP status ' + response.status)
         setError('Credenziali non valide');
@@ -48,14 +49,14 @@ export default function Chatbot() {
             'Content-Type': 'application/json'
           },
         });
-
+        
         if (!getAutista.ok) {
           console.log('ricevuto HTTP status ' + getAutista.status);
           setError('Credenziali non valide');
           continue;
         }
-
         const autista = await getAutista.json();
+        console.log(autista)
         const { disponibile } = autista;
 
         if (disponibile) {
@@ -82,7 +83,7 @@ export default function Chatbot() {
       setInputText("");
 
     } catch (error) {
-      console.error("Errore durante il login:", error);
+      console.error("Errore durante la trasmissione/ricezione:", error);
     }
   };
 
