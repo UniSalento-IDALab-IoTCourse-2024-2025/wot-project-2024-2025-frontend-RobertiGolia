@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Text, View, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { Text, View, ScrollView, TouchableOpacity, Alert, RefreshControl } from "react-native";
 import Header from "../../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -13,6 +13,7 @@ export default function Home() {
   const [corse, setCorse] = useState<any[]>([]);
 
   const [error, setError] = useState('')
+  const [refreshing, setRefreshing] = useState(false);
 
   const corseStatiche = [
     { id: 1, partenza: "Milano", arrivo: "Torino", ora: "10:00" },
@@ -53,6 +54,12 @@ export default function Home() {
     }
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await handleCorse();
+    setRefreshing(false);
+  }, []);
+
   useEffect(() => {
     handleCorse();
   }, []);
@@ -84,69 +91,73 @@ export default function Home() {
   return (
     <View className="flex-1 bg-white">
       <Header />
-      <View className="flex-1 p-6">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingTop: 32, paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Text className="text-3xl font-bold text-secondary mb-8 text-center">
           Lista corse
         </Text>
-        <ScrollView className="flex-1">
-          <View>
-            {/* Header della tabella */}
-            <View className="border-b-2 border-secondary mb-2">
-              <View className="flex-row py-4">
-                <View style={{ width: 120 }} className="px-2">
-                  <Text className="font-bold text-secondary text-center">Partenza</Text>
-                </View>
-                <View className="w-[1] bg-gray-300" />
-                <View style={{ width: 120 }} className="px-2">
-                  <Text className="font-bold text-secondary text-center">Arrivo</Text>
-                </View>
+        <View>
+          {/* Header della tabella */}
+          <View className="border-b-2 border-secondary mb-2">
+            <View className="flex-row py-4">
+              <View style={{ width: 120 }} className="px-2">
+                <Text className="font-bold text-secondary text-center">Partenza</Text>
+              </View>
+              <View className="w-[1] bg-gray-300" />
+              <View style={{ width: 120 }} className="px-2">
+                <Text className="font-bold text-secondary text-center">Arrivo</Text>
               </View>
             </View>
-
-            {/* Righe della tabella */}
-            {corse.length > 0 ? (
-              corse.map((corsa, index) => (
-                <View
-                  key={corsa.id}
-                  className={`border-b border-gray-200 flex-row items-center ${
-                    selectedRide === index ? "bg-[#0073ff20]" : ""
-                  }`}
-                >
-                  <TouchableOpacity
-                    onPress={() => setSelectedRide(index)}
-                    className="flex-1"
-                  >
-                    <View className="flex-row py-4">
-                      <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">{corsa.addA}</Text>
-                      </View>
-                      <View className="w-[1] bg-gray-200" />
-                      <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">{corsa.addB}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                  {selectedRide === index && (
-                    <View className="pr-2">
-                      <TouchableOpacity
-                        onPress={() => handleFineCorsa(corsa.id)}
-                        className="bg-red-500 py-2 px-3 rounded-lg"
-                      >
-                        <Text className="text-white font-bold">Fine corsa</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              ))
-            ) : (
-              <Text className="text-red-500 text-center mt-4">
-                {error || "Nessuna corsa disponibile"}
-              </Text>
-            )}
-
-
           </View>
-        </ScrollView>
+
+          {/* Righe della tabella */}
+          {corse.length > 0 ? (
+            corse.map((corsa, index) => (
+              <View
+                key={corsa.id}
+                className={`border-b border-gray-200 flex-row items-center ${
+                  selectedRide === index ? "bg-[#0073ff20]" : ""
+                }`}
+              >
+                <TouchableOpacity
+                  onPress={() => setSelectedRide(index)}
+                  className="flex-1"
+                >
+                  <View className="flex-row py-4">
+                    <View style={{ width: 120 }} className="px-2">
+                      <Text className="text-secondary text-center">{corsa.addA}</Text>
+                    </View>
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 120 }} className="px-2">
+                      <Text className="text-secondary text-center">{corsa.addB}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                {selectedRide === index && (
+                  <View className="pr-2">
+                    <TouchableOpacity
+                      onPress={() => handleFineCorsa(corsa.id)}
+                      className="bg-red-500 py-2 px-3 rounded-lg"
+                    >
+                      <Text className="text-white font-bold">Fine corsa</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ))
+          ) : (
+            <Text className="text-red-500 text-center mt-4">
+              {error || "Nessuna corsa disponibile"}
+            </Text>
+          )}
+
+
+        </View>
         {/*
         <View className="py-6">
           <TouchableOpacity
@@ -159,7 +170,7 @@ export default function Home() {
             </Text>
           </TouchableOpacity>
         </View>*/}
-      </View>
+      </ScrollView>
     </View>
   );
 } 

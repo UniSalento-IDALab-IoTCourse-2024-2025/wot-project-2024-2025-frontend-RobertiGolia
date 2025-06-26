@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Alert, RefreshControl } from "react-native";
 import Header from "../../components/Header";
 import { router, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +20,7 @@ export default function RideBooked() {
   const [userName, setUserName] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [tempDate, setTempDate] = useState<string[]>([])
+  const [refreshing, setRefreshing] = useState(false);
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
 
   const handleCorseByIdUser = async () => {
@@ -83,6 +84,12 @@ export default function RideBooked() {
     }
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await handleCorseByIdUser();
+    setRefreshing(false);
+  }, []);
+
   const handleStart = async (index : number) => {
     try {
       const userId = await AsyncStorage.getItem('idUsr');
@@ -127,7 +134,13 @@ export default function RideBooked() {
   return (
     <View className="flex-1 bg-white">
       <Header />
-      <View className="flex-1 px-4 pt-8">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingTop: 32, paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {userName && (
           <Text className="text-3xl font-bold text-secondary text-center mb-2">
             Ciao {userName}
@@ -142,82 +155,80 @@ export default function RideBooked() {
         </Text>
 
         {corseUtente.length > 0 ? (
-          <ScrollView className="flex-1">
-            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-              <View>
-                {/* Header tabella */}
-                <View className="border-b-2 border-secondary mb-2">
-                  <View className="flex-row py-4">
-                    {["Autista", "Parti", "Data", "Partenza", "Destinazione"].map((col) => (
-                      <React.Fragment key={col}>
-                        <View style={{ width: col === "Partenza" || col === "Destinazione" ? 150 : 120 }} className="px-2">
-                          <Text className="font-bold text-secondary text-center">{col}</Text>
-                        </View>
-                        <View className="w-[1] bg-gray-300" />
-                      </React.Fragment>
-                    ))}
-                  </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+            <View>
+              {/* Header tabella */}
+              <View className="border-b-2 border-secondary mb-2">
+                <View className="flex-row py-4">
+                  {["Autista", "Parti", "Data", "Partenza", "Destinazione"].map((col) => (
+                    <React.Fragment key={col}>
+                      <View style={{ width: col === "Partenza" || col === "Destinazione" ? 150 : 120 }} className="px-2">
+                        <Text className="font-bold text-secondary text-center">{col}</Text>
+                      </View>
+                      <View className="w-[1] bg-gray-300" />
+                    </React.Fragment>
+                  ))}
                 </View>
+              </View>
 
-                {/* Righe */}
-                {corseUtente.map((ride, index) => (
-                  <View key={ride.id || index} className="border-b border-gray-200">
-                    <View className="flex-row py-4">
-                      <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">{usernameAutista[index] || "N/D"}</Text>
-                      </View>
-                      <View className="w-[1] bg-gray-200" />
-                      <View style={{ width: 100 }} className="px-2 items-center justify-center">
-                        {!ride.partito ? (
-                          <TouchableOpacity
-                            onPress={() => {
-                              handleStart(index);
-                              router.replace('/scan');
-                            }}
-                            style={{
-                              backgroundColor: "#22c55e",
-                              paddingVertical: 6,
-                              paddingHorizontal: 12,
-                              borderRadius: 8,
-                            }}
-                          >
-                            <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>
-                              Parti
-                            </Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <Text style={{ color: "#9ca3af", fontWeight: "bold", textAlign: "center" }}>
-                            In Corso
+              {/* Righe */}
+              {corseUtente.map((ride, index) => (
+                <View key={ride.id || index} className="border-b border-gray-200">
+                  <View className="flex-row py-4">
+                    <View style={{ width: 120 }} className="px-2">
+                      <Text className="text-secondary text-center">{usernameAutista[index] || "N/D"}</Text>
+                    </View>
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 100 }} className="px-2 items-center justify-center">
+                      {!ride.partito ? (
+                        <TouchableOpacity
+                          onPress={() => {
+                            handleStart(index);
+                            router.replace('/scan');
+                          }}
+                          style={{
+                            backgroundColor: "#22c55e",
+                            paddingVertical: 6,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>
+                            Parti
                           </Text>
-                        )}
-
-                      </View>
-                      <View className="w-[1] bg-gray-200" />
-                      <View style={{ width: 120 }} className="px-2">
-                        <Text className="text-secondary text-center">{tempDate[index]}</Text>
-                      </View>
-                      <View className="w-[1] bg-gray-200" />
-                      <View style={{ width: 150 }} className="px-2">
-                        <Text className="text-secondary text-center">{ride.addA}</Text>
-                      </View>
-                      <View className="w-[1] bg-gray-200" />
-                      <View style={{ width: 150 }} className="px-2">
-                        <Text className="text-secondary text-center">{ride.addB}</Text>
-                      </View>
+                        </TouchableOpacity>
+                      ) : (
+                        <Text style={{ color: "#9ca3af", fontWeight: "bold", textAlign: "center" }}>
+                          In Corso
+                        </Text>
+                      )}
 
                     </View>
-                  </View>
-                ))}
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 120 }} className="px-2">
+                      <Text className="text-secondary text-center">{tempDate[index]}</Text>
+                    </View>
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 150 }} className="px-2">
+                      <Text className="text-secondary text-center">{ride.addA}</Text>
+                    </View>
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 150 }} className="px-2">
+                      <Text className="text-secondary text-center">{ride.addB}</Text>
+                    </View>
 
-              </View>
-            </ScrollView>
+                  </View>
+                </View>
+              ))}
+
+            </View>
           </ScrollView>
         ) : (
           <View className="flex-1 items-center justify-center">
             <Text className="text-lg text-red-500">{error || "Nessuna corsa prenotata."}</Text>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }
