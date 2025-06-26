@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Text, View, ScrollView, TouchableOpacity } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, Alert } from "react-native";
 import Header from "../../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -57,6 +57,29 @@ export default function Home() {
     handleCorse();
   }, []);
 
+  const handleFineCorsa = async (idCorsa: any) => {
+    try {
+      const response = await fetch(`${invokeURL}/api/trip/termina_corsa/${idCorsa}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        Alert.alert("Corsa terminata");
+        setSelectedRide(null); 
+        handleCorse(); 
+      } else {
+        console.error('Errore HTTP:', response.status);
+        Alert.alert('Errore', 'Impossibile terminare la corsa.');
+      }
+    } catch (error) {
+      console.error("Errore durante la terminazione della corsa:", error);
+      Alert.alert("Errore di rete", "Impossibile comunicare con il server.");
+    }
+  };
+
 
   return (
     <View className="flex-1 bg-white">
@@ -70,10 +93,6 @@ export default function Home() {
             {/* Header della tabella */}
             <View className="border-b-2 border-secondary mb-2">
               <View className="flex-row py-4">
-                <View style={{ width: 80 }} className="px-2">
-                  <Text className="font-bold text-secondary text-center">Orario</Text>
-                </View>
-                <View className="w-[1] bg-gray-300" />
                 <View style={{ width: 120 }} className="px-2">
                   <Text className="font-bold text-secondary text-center">Partenza</Text>
                 </View>
@@ -87,25 +106,37 @@ export default function Home() {
             {/* Righe della tabella */}
             {corse.length > 0 ? (
               corse.map((corsa, index) => (
-                <TouchableOpacity
+                <View
                   key={corsa.id}
-                  onPress={() => setSelectedRide(index)}
-                  className={`border-b border-gray-200 ${selectedRide === index ? "bg-[#0073ff20]" : ""}`}
+                  className={`border-b border-gray-200 flex-row items-center ${
+                    selectedRide === index ? "bg-[#0073ff20]" : ""
+                  }`}
                 >
-                  <View className="flex-row py-4">
-                    <View style={{ width: 80 }} className="px-2">
-                      <Text className="text-secondary text-center">-</Text>
+                  <TouchableOpacity
+                    onPress={() => setSelectedRide(index)}
+                    className="flex-1"
+                  >
+                    <View className="flex-row py-4">
+                      <View style={{ width: 120 }} className="px-2">
+                        <Text className="text-secondary text-center">{corsa.addA}</Text>
+                      </View>
+                      <View className="w-[1] bg-gray-200" />
+                      <View style={{ width: 120 }} className="px-2">
+                        <Text className="text-secondary text-center">{corsa.addB}</Text>
+                      </View>
                     </View>
-                    <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 120 }} className="px-2">
-                      <Text className="text-secondary text-center">{corsa.addA}</Text>
+                  </TouchableOpacity>
+                  {selectedRide === index && (
+                    <View className="pr-2">
+                      <TouchableOpacity
+                        onPress={() => handleFineCorsa(corsa.id)}
+                        className="bg-red-500 py-2 px-3 rounded-lg"
+                      >
+                        <Text className="text-white font-bold">Fine corsa</Text>
+                      </TouchableOpacity>
                     </View>
-                    <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 120 }} className="px-2">
-                      <Text className="text-secondary text-center">{corsa.addB}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                  )}
+                </View>
               ))
             ) : (
               <Text className="text-red-500 text-center mt-4">
