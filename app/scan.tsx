@@ -5,6 +5,9 @@ import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import * as MailComposer from 'expo-mail-composer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NavigationProp } from "@react-navigation/native";
+import * as Location from 'expo-location';
+import { useEffect } from 'react';
 
 
 const ScanScreen = () => {
@@ -17,6 +20,9 @@ const ScanScreen = () => {
   const [usernameAutista, setUsernameAutista] = useState('')
   const [idAutista, setIdAutista] = useState('')
   const [body, setBody] = useState('')
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+
   const [error, setError] = useState('');
 
   const scanning = useRef(false); // flag persistente per bloccare scansioni multiple
@@ -40,7 +46,7 @@ const ScanScreen = () => {
 
       console.log(`È stato scansionato un codice QR:\n\nID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`)
       // dentro handleBarCodeScanned
-      handleSendEmail(nomeAutista);
+      handleSendEmail();
 
       Alert.alert(
         "Autista",
@@ -65,40 +71,56 @@ const ScanScreen = () => {
     }
   };
 
-  const handleSendEmail = async (nomeAutista: string) => {
+  const handleSendEmail = async () => {
     try {
-      const email = await AsyncStorage.getItem('email_parente');
-      console.log(email)
+      const emailParente = await AsyncStorage.getItem('email_parente');
+      console.log("Email parente:", emailParente);
+  
+      let posizione = "";
+      if (latitude && longitude) {
+        posizione = `\n\nCoordinate:\nLatitudine: ${latitude}\nLongitudine: ${longitude}\nhttps://maps.google.com/?q=${latitude},${longitude}`;
+      }
+  
       const emailDto = {
-        email: email,
+        email: emailParente,
         subject: "Corsa iniziata",
-        body: "Gentile " + email + ", la informiamo che è iniziata la corsa"
+        body: `Gentile utente,\n\nLa corsa è iniziata.${posizione}`
       };
-
+  
       const response = await fetch(invokeURL + "/api/trip/sendEmail", {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emailDto)
       });
-
+  
       if (!response.ok) {
-        console.log('ricevuto HTTP status ' + response.status)
+        console.log('ricevuto HTTP status ' + response.status);
         setError('Errore durante l’invio dell’email');
         return;
       }
-
+  
       const data = await response.json();
-      console.log(data)
       console.log("Email inviata:", data.message);
-
     } catch (error) {
-      console.error("Errore durante la trasmissione/ricezione:", error);
+      console.error("Errore durante l'invio dell'email:", error);
     }
   };
+  
 
-
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Permesso per la posizione negato');
+        return;
+      }
+  
+      const location = await Location.getCurrentPositionAsync({});
+      setLatitude(location.coords.latitude);
+      setLongitude(location.coords.longitude);
+    })();
+  }, []);
+  
 
   if (!permission) {
     // Camera permissions are still loading.
