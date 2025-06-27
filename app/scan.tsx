@@ -10,6 +10,7 @@ import * as Location from 'expo-location';
 import { useEffect } from 'react';
 
 
+
 const ScanScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
