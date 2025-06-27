@@ -11,7 +11,7 @@ export default function Registrazione() {
   //const [dataNascita, setDataNascita] = useState(new Date());
   const [username, setusername] = useState("");
   const [email, setEmail] = useState('');
-  const [emailParente, setEmailParente] = useState('');
+  const [email_parente, setEmailParente] = useState('');
   const [password, setPassword] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState('')
@@ -29,7 +29,7 @@ export default function Registrazione() {
       return;
     }
 
-    if (emailParente && !emailRegex.test(emailParente)) {
+    if (email_parente && !emailRegex.test(email_parente)) {
       Alert.alert('Errore', 'Inserisci un indirizzo email valido per il parente');
       return;
     }
@@ -40,19 +40,19 @@ export default function Registrazione() {
     }
 
     const registrationDto = {
-      nome,
-      cognome,
-      email,
+      nome: nome.trim(),
+      cognome: cognome.trim(),
+      email: email.trim(),
       password,
-      emailParente,
-      //dataNascita: dataNascita.toISOString().split('T')[0], // opzionale se vuoi mandare anche la data
-      username
+      email_parente: email_parente ? email_parente.trim() : null,
+      username: username.trim()
     };
-
     console.log("DTO inviato:", JSON.stringify(registrationDto, null, 2));
 
 
     try {
+      console.log(registrationDto.email)
+      console.log(registrationDto.email_parente)
       const response = await fetch(invokeURL + "/registration", {
         method: 'POST',
         headers: {
@@ -171,8 +171,8 @@ export default function Registrazione() {
               <TextInput
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 placeholder="Inserisci l'email di un parente"
-                value={emailParente}
-                onChangeText={setEmailParente}
+                value={email_parente}
+                onChangeText={(text) => setEmailParente(text.trim())}
                 autoCapitalize="none"
                 keyboardType="email-address"
               />

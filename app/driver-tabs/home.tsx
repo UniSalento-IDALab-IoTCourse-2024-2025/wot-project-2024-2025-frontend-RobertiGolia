@@ -40,11 +40,11 @@ export default function Home() {
       }
 
       const data = await response.json();
-      const { usersList } = data;
+      const { tripsList } = data;
 
 
-      if (Array.isArray(usersList)) {
-        setCorse(usersList);
+      if (Array.isArray(tripsList)) {
+        setCorse(tripsList);
       } else {
         setError('Nessuna corsa trovata.');
       }

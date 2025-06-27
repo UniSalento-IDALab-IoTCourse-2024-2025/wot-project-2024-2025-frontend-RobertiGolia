@@ -66,8 +66,10 @@ export default function Login() {
         console.log('ricevuto HTTP status ' + response.status)
         setError('Credenziali non valide')
       }
+      
       const data = await response.json();
       const { jwt } = data;
+      console.log(jwt)
       if (jwt) {
         try {
           await AsyncStorage.setItem('authToken', jwt);
@@ -87,15 +89,15 @@ export default function Login() {
           'Authorization': 'Bearer ' + jwt
         }
       });
+      
       const info = await user.json()
       const { ruolo } = info
       const { email } = info
       const { id } = info
       const { nome } = info
       const { cognome } = info
+      const { email_parente } = info
       const { username } = info
-
-
 
       await AsyncStorage.setItem('ruolo', ruolo)
       await AsyncStorage.setItem('email', email);
@@ -103,10 +105,17 @@ export default function Login() {
       await AsyncStorage.setItem('nome', nome);
       await AsyncStorage.setItem('cognome', cognome);
       await AsyncStorage.setItem('username', username);
+      if (email_parente != null){
+        await AsyncStorage.setItem('email_parente', email_parente);
+      }
+      
       if (ruolo === 'autista') {
         router.replace('/driver-tabs/home');
-      } else {
+      } else if (ruolo === 'utente') {
         router.replace('/(tabs)/profile');
+      } else if (ruolo === 'amministratore') {
+        router.replace('/dashboard')
+
       }
 
 

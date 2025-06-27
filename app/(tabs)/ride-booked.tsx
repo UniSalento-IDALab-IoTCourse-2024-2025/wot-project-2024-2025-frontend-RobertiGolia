@@ -43,16 +43,16 @@ export default function RideBooked() {
       }
 
       const data = await response.json();
-      const { usersList } = data;
+      const { tripsList } = data;
 
-      if (Array.isArray(usersList)) {
-        setCorseUtente(usersList);
+      if (Array.isArray(tripsList)) {
+        setCorseUtente(tripsList);
 
         // Dopo aver impostato le corse, recupera gli username
         const tempUsernames: string[] = [];
 
-        for (let i = 0; i < usersList.length; i++) {
-          const ride = usersList[i];
+        for (let i = 0; i < tripsList.length; i++) {
+          const ride = tripsList[i];
           const getUsernameAutista = await fetch(`${invokeURL}/users/${ride.idAutista}`, {
             method: 'GET',
             headers: {

@@ -1,11 +1,116 @@
-import React from "react";
-import { View, Text, ScrollView, Dimensions } from "react-native";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
+import { View, Text, ScrollView, Dimensions, TouchableOpacity } from "react-native";
 import Header from "../components/Header";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
+import { clearCurrentUser, getCurrentUser } from "../constants/currentUser";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Dashboard() {
+
+  const router = useRouter();
+  type Ride = {
+    id: string;
+    addA: string;
+    addB: string;
+    idUser: string;
+    idAutista: string;
+    usernameAutista: string
+    partito: boolean
+  };
+  const [corseUtente, setCorseUtente] = useState<Ride[]>([]);
+  const [usernameAutista, setUserNameAutista] = useState<string[]>([])
+  const [userName, setUserName] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [tempDate, setTempDate] = useState<string[]>([])
+  const [refreshing, setRefreshing] = useState(false);
+  const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
+
+  const handleGetAll = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('idUsr');
+      console.log(userId)
+      if (!userId) return setError("Utente non identificato.");
+
+      const response = await fetch(invokeURL + "/api/trip/corse", {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.log('HTTP status:', response.status);
+        setError('Errore nel recupero delle corse');
+        return;
+      }
+
+      const data = await response.json();
+      const { tripList } = data;
+
+      if (Array.isArray(tripList)) {
+        setCorseUtente(tripList);
+
+        // Dopo aver impostato le corse, recupera gli username
+        const tempUsernames: string[] = [];
+
+        for (let i = 0; i < tripList.length; i++) {
+          const ride = tripList[i];
+          const getUsernameAutista = await fetch(`${invokeURL}/users/${ride.idAutista}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!getUsernameAutista.ok) {
+            console.log('Errore nel recupero username autista:', getUsernameAutista.status);
+            tempUsernames.push("N/D");
+            continue;
+          }
+
+          const info = await getUsernameAutista.json();
+          const { username } = info;
+          const { data } = info
+          tempDate.push(data || "N/D")
+          tempUsernames.push(username || "N/D");
+        }
+
+        setUserNameAutista(tempUsernames);
+      } else {
+        setError("Nessuna corsa trovata.");
+      }
+
+    } catch (err) {
+      console.error("Errore durante il recupero delle corse:", err);
+      setError("Errore di rete");
+    }
+  };
+
+  const handleLogout = async () => {
+    clearCurrentUser();
+    // Forziamo un reload completo dell'app
+    try {
+      //await Updates.reloadAsync();
+      AsyncStorage.removeItem('nome')
+      AsyncStorage.removeItem('ruolo')
+      AsyncStorage.removeItem('idUsr')
+      AsyncStorage.removeItem('email')
+      AsyncStorage.removeItem('data_nascita')
+      AsyncStorage.removeItem('username')
+      AsyncStorage.removeItem('cognome')
+      router.replace('/(auth)/login')
+    } catch (error) {
+      console.log(error)
+
+    }
+  };
+  useEffect(() => {
+    handleGetAll();
+  }, []);
+
   return (
     <View className="flex-1 bg-white">
       <Header />
@@ -115,7 +220,7 @@ export default function Dashboard() {
                   fill: "#64748b",
                 },
               }}
-              style={{ borderRadius: 16, paddingRight: 50, paddingLeft: 20}}
+              style={{ borderRadius: 16, paddingRight: 50, paddingLeft: 20 }}
             />
           </ScrollView>
         </View>
@@ -145,7 +250,16 @@ export default function Dashboard() {
             style={{ borderRadius: 16 }}
           />
         </View>
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="w-full bg-red-500 py-4 rounded-xl items-center mt-8"
+        >
+          <Text className="text-white text-lg font-semibold">
+            Disconnetti
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
+
     </View>
   );
 }

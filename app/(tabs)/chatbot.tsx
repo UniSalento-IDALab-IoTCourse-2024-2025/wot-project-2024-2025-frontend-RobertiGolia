@@ -35,7 +35,7 @@ export default function Chatbot() {
         setError('Credenziali non valide');
         return;
       }
-
+      
       const data = await response.json();
       const driversList = data?.output?.drivers || [];
 
@@ -49,7 +49,7 @@ export default function Chatbot() {
             'Content-Type': 'application/json'
           },
         });
-        
+        console.log(getAutista)
         if (!getAutista.ok) {
           console.log('ricevuto HTTP status ' + getAutista.status);
           setError('Credenziali non valide');
