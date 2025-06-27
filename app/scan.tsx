@@ -3,19 +3,29 @@ import Header from "../components/Header";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { router } from 'expo-router';
+import * as MailComposer from 'expo-mail-composer';
+
 
 const ScanScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const scanning = useRef(false); // flag persistente per bloccare scansioni multiple
   
-  const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
-    if (scanning.current) return; // blocca subito se già in scansione
-
-    scanning.current = true; // blocca altre scansioni
-
+  const handleBarCodeScanned = async (scanningResult: BarcodeScanningResult) => {
+    if (scanning.current) return;
+  
+    scanning.current = true;
+  
     try {
       const data = JSON.parse(scanningResult.data);
+  
+      // Invia l'email
+      await MailComposer.composeAsync({
+        recipients: ['luigi.roberti@studenti.unisalento.it'], // Sostituisci con l'indirizzo reale
+        subject: 'Dati QR Scansionati',
+        body: `È stato scansionato un codice QR:\n\nID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`,
+      });
+  
       Alert.alert(
         "Autista",
         `ID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`,
@@ -24,7 +34,7 @@ const ScanScreen = () => {
             text: "OK",
             onPress: () => {
               setScanned(true);
-              scanning.current = false; // reset flag per future scansioni (se necessario)
+              scanning.current = false;
               router.replace("/mappa");
             },
           },
@@ -33,7 +43,7 @@ const ScanScreen = () => {
       );
     } catch (e) {
       Alert.alert("Errore", "Il QR code non contiene un JSON valido");
-      scanning.current = false; // reset flag per nuova scansione
+      scanning.current = false;
       setScanned(false);
     }
   };

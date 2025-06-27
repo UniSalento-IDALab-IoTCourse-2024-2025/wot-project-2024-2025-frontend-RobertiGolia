@@ -40,7 +40,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-mail-composer"
     ],
     "experiments": {
       "typedRoutes": true
@@ -50,7 +51,5 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     }
-    
   }
-  
 }
