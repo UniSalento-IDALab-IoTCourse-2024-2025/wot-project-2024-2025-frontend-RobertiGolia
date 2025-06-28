@@ -98,6 +98,7 @@ export default function Login() {
       const { cognome } = info
       const { email_parente } = info
       const { username } = info
+      const { n_posti } = info
 
       await AsyncStorage.setItem('ruolo', ruolo)
       await AsyncStorage.setItem('email', email);
@@ -110,6 +111,7 @@ export default function Login() {
       }
       
       if (ruolo === 'autista') {
+        await AsyncStorage.setItem('n_posti', String(n_posti))
         router.replace('/driver-tabs/home');
       } else if (ruolo === 'utente') {
         router.replace('/(tabs)/profile');

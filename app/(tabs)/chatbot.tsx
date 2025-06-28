@@ -11,6 +11,7 @@ export default function Chatbot() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [availableDrivers, setAvailableDrivers] = useState<string[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
+  const [n_posti, setNPosti] = useState(Number)
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
   const [autistiDisponibili, setAutistiDisponibili] = useState<string[]>([]);
 
@@ -20,82 +21,94 @@ export default function Chatbot() {
 
   const handleSendMessage = async () => {
     try {
+      if (!inputText.trim()) return;
+  
       setMessages(prev => [...prev, { text: inputText, isUser: true }]);
-
-      const response = await fetch(invokeURL + "/run-model/" + inputText, {
+  
+      const response = await fetch(`${invokeURL}/run-model/${inputText}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
-
-      
+  
       if (!response.ok) {
-        console.log('ricevuto HTTP status ' + response.status)
-        setError('Credenziali non valide');
+        console.log('HTTP error:', response.status);
+        setError('Errore durante la richiesta');
         return;
       }
-      
+  
       const data = await response.json();
       const driversList = data?.output?.drivers || [];
-
+  
       const disponibili: string[] = [];
-
-      for (let i = 0; i < driversList.length-1; i++) {
-        const formatted = formatDriverName(driversList[i]);
-        const getAutista = await fetch(invokeURL + "/username/" + formatted, {
+  
+      for (const driverName of driversList) {
+        const formatted = formatDriverName(driverName);
+  
+        const getAutista = await fetch(`${invokeURL}/username/${formatted}`, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
-        console.log(getAutista)
+  
         if (!getAutista.ok) {
-          console.log('ricevuto HTTP status ' + getAutista.status);
-          setError('Credenziali non valide');
+          console.log('Errore fetch autista:', getAutista.status);
           continue;
         }
+  
         const autista = await getAutista.json();
-        console.log(autista)
-        const { disponibile } = autista;
-
-        if (disponibile) {
+        const { disponibile, n_posti, id } = autista;
+  
+        if (n_posti > 0) {
           disponibili.push(formatted);
+          await AsyncStorage.setItem('idAutistaUsato', id);
+        } else {
+          const changeDispo = await fetch(`${invokeURL}/users/changeDispo/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+          });
+  
+          if (!changeDispo.ok) {
+            const errText = await changeDispo.text();
+            console.log('Errore HTTP ' + changeDispo.status + ': ' + errText);
+            setError('Cambio disponibilità fallito');
+            continue;
+          }
+  
+          // Solo log per debug, senza riusare 'data'
+          const changeResponse = await changeDispo.json();
+          console.log('Messaggio cambio disponibilità:', changeResponse.message);
         }
       }
-
-      console.log("Autisti disponibili: " + disponibili.join(", "));
+  
+      const messaggioOutput = disponibili.length > 0
+        ? "Seleziona un autista tra quelli disponibili:"
+        : "Nessun autista disponibile.";
+  
       setAutistiDisponibili(disponibili);
-
-      if (disponibili.length > 0) {
-        setAvailableDrivers(disponibili);
-        setOutput("Seleziona un autista tra quelli disponibili:");
-      } else {
-        setAvailableDrivers([]);
-        setOutput("Nessun autista disponibile.");
-      }
-
+      setAvailableDrivers(disponibili);
+  
       setTimeout(() => {
-        setMessages(prev => [...prev, { text: output, isUser: false }]);
+        setMessages(prev => [...prev, { text: messaggioOutput, isUser: false }]);
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 500);
-
+  
       setInputText("");
-
     } catch (error) {
-      console.error("Errore durante la trasmissione/ricezione:", error);
+      console.error("Errore nella comunicazione:", error);
+      setError("Errore imprevisto");
     }
   };
-
+  
 
   const formatDriverName = (fullName: string) => {
-    const parts = fullName.trim().toLowerCase().split(" ");
-    if (parts.length < 2) return fullName.toLowerCase().replace(/\s/g, "");
-    const initial = parts[0][0];
-    const lastName = parts.slice(1).join("");
-
-    return `${initial}${lastName}`;
+    const parts = fullName.trim().toLowerCase().split(" ").filter(Boolean);
+    if (parts.length < 2) return fullName.replace(/\s/g, "").toLowerCase();
+  
+    const [firstName, ...rest] = parts;
+    return `${firstName[0]}${rest.join("")}`;
   };
+  
   return (
     <View className="flex-1 bg-white">
       <Header />

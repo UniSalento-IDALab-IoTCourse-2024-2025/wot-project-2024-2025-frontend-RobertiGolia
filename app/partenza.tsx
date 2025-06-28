@@ -11,7 +11,8 @@ export default function Partenza() {
   const router = useRouter();
   const [addA, setAddA] = useState('')
   const [addB, setAddB] = useState('')
-  const [id, setId] = useState('')
+
+
   const [error, setError] = useState('')
 
 
@@ -19,82 +20,77 @@ export default function Partenza() {
 
   const handlePrenota = async () => {
     if (!addA || !addB) {
-      Alert.alert(
-        "Errore",
-        "Per favore, seleziona sia il punto di partenza che quello di arrivo",
-        [{ text: "OK" }]
-      );
+      Alert.alert("Errore", "Seleziona partenza e arrivo", [{ text: "OK" }]);
       return;
     }
-    const tripDTO = {
-      addA,
-      addB,
-    };
-
-    //fare la chiamata per vedere quale id corrisponde username
+  
     try {
-
-      const getAutista = await fetch(invokeURL + "/username/" + await AsyncStorage.getItem('usernameAutista'), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const data = await getAutista.json()
-
-      const { id } = data
-
-      console.log(id)
-      const token = await AsyncStorage.getItem('authToken');
-
-      // Verifica che idAutista non sia nullo o vuoto
-      if (!id) {
-        console.error('idAutista mancante o nullo');
-        setError('ID Autista non valido');
+      const idAutista = await AsyncStorage.getItem('idAutistaUsato');
+      if (!idAutista) {
+        setError("ID Autista mancante");
         return;
       }
-
-      // Imposta gli headers
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-        'idAutista': id
+  
+      const takeSeat = await fetch(`${invokeURL}/users/takeSeat/${idAutista}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!takeSeat.ok) {
+        console.log('Errore takeSeat:', takeSeat.status);
+        setError('Errore nella prenotazione del posto');
+        return;
+      }
+  
+      const takeSeatResult = await takeSeat.json();
+      console.log("Risultato takeSeat:", takeSeatResult);
+  
+      if (takeSeatResult.result !== 4) {
+        Alert.alert("Errore", takeSeatResult.message || "Posto non disponibile");
+        return;
+      }
+  
+      const token = await AsyncStorage.getItem('authToken');
+      const tripDTO = {
+        addA,
+        addB,
       };
-
-      const response = await fetch(invokeURL + "/api/trip/reserve", {
+  
+      const response = await fetch(`${invokeURL}/api/trip/reserve`, {
         method: 'POST',
-        headers: headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'idAutista': idAutista
+        },
         body: JSON.stringify(tripDTO)
       });
-
+  
       if (!response.ok) {
         const errText = await response.text();
         console.log('Errore HTTP ' + response.status + ': ' + errText);
         setError('Registrazione fallita');
         return;
       }
-
-      const date = await response.json()
-      const { message } = date
-      const { result } = date
-
-      Alert.alert(
-        "Risposta",
-        message,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.push('/ride-booked')
-          }
-        ]
-      );
+  
+      const risposta = await response.json();
+      const { message } = risposta;
+  
+      Alert.alert("Prenotazione effettuata", message || "Viaggio prenotato", [
+        {
+          text: 'OK',
+          onPress: () => router.push('/ride-booked')
+        }
+      ]);
     } catch (error) {
-      console.error("Errore durante la registrazione:", error);
+      console.error("Errore prenotazione:", error);
       Alert.alert('Errore', 'Errore di rete o del server');
     }
-
   };
+  
+
 
 
   return (

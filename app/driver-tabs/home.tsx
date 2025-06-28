@@ -69,7 +69,7 @@ export default function Home() {
       const addA = trip.addA;       // "CBD, Melbourne Victoria, Australia"
       const addB = trip.addB;       // "Budapest, XVI. kerület, Ungheria"
       const idUser = trip.idUser;   // "685eb12fb34461547f78df42"
-      const idAutista = trip.idAutista; // "685e68e1dbed2774a9433960"
+      const idAutista = trip.idAutista
       const partito = trip.partito; // false
       console.log(corsaInfo)
       // Prendi info utente
@@ -86,7 +86,35 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
       });
       if (!terminaRes.ok) throw new Error(`Errore terminazione corsa: ${terminaRes.status}`);
-
+      
+      //fare la chiamata per leave Seat
+      
+      if (!idAutista) {
+        setError("ID Autista mancante");
+        return;
+      }
+  
+      const leaveSeat = await fetch(`${invokeURL}/users/leaveSeat/${idAutista}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!leaveSeat.ok) {
+        console.log('Errore leaveSeat:', leaveSeat.status);
+        setError('Errore nel lasciare il posto');
+        return;
+      }
+  
+      const leaveSeatResult = await leaveSeat.json();
+      console.log("Risultato leaveeSeat:", leaveSeatResult);
+  
+      if (leaveSeatResult.result !== 4) {
+        Alert.alert("Errore", leaveSeatResult.message);
+        return;
+      }
+      
       // Email
       await handleSendEmail(email_parente);
 
@@ -157,6 +185,7 @@ export default function Home() {
                       <Text className="text-secondary text-center">{corsa.addB}</Text>
                     </View>
                   </View>
+                  
                 </TouchableOpacity>
                 {selectedRide === index && (
                   <View className="pr-2">
