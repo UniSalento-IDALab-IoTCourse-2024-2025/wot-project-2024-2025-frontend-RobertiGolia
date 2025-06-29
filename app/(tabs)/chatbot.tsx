@@ -40,7 +40,7 @@ export default function Chatbot() {
       const driversList = data?.output?.drivers || [];
   
       const disponibili: string[] = [];
-  
+      console.log(driversList)
       for (const driverName of driversList) {
         const formatted = formatDriverName(driverName);
   

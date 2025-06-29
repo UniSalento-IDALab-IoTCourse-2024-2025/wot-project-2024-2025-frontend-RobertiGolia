@@ -45,7 +45,7 @@ export default function Partenza() {
       }
   
       const takeSeatResult = await takeSeat.json();
-      console.log("Risultato takeSeat:", takeSeatResult);
+      
   
       if (takeSeatResult.result !== 4) {
         Alert.alert("Errore", takeSeatResult.message || "Posto non disponibile");
@@ -77,6 +77,23 @@ export default function Partenza() {
   
       const risposta = await response.json();
       const { message } = risposta;
+
+      //chiamata per incrementare il numero di corse effettuate
+      const addCorsa = await fetch(invokeURL + "/users/addCorsa/" + idAutista, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      if (!addCorsa.ok) {
+        const errText = await addCorsa.text();
+        console.log('Errore HTTP ' + addCorsa.status + ': ' + errText);
+        setError('Errore aggiunta corsa');
+        return;
+      }
+      
+  
+      //const aggiungiCorsa = await addCorsa.json();
   
       Alert.alert("Prenotazione effettuata", message || "Viaggio prenotato", [
         {

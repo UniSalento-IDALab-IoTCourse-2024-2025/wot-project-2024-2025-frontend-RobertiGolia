@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import * as Updates from 'expo-updates';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Header from "../../components/Header";
 import { clearCurrentUser, getCurrentUser } from "../../constants/currentUser";
@@ -10,25 +10,29 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function Profile() {
   const router = useRouter();
   const currentUser = getCurrentUser();
+  const [nome, setNome] = useState('');
+  const [cognome, setCognome] = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
 
-  
+
 
   const handleLogout = async () => {
     clearCurrentUser();
     // Forziamo un reload completo dell'app
     try {
       //await Updates.reloadAsync();
-      AsyncStorage.removeItem('nome')
-      AsyncStorage.removeItem('ruolo')
-      AsyncStorage.removeItem('idUsr')
-      AsyncStorage.removeItem('email')
-      AsyncStorage.removeItem('data_nascita')
-      AsyncStorage.removeItem('username')
-      AsyncStorage.removeItem('cognome')
+      await AsyncStorage.removeItem('ruolo')
+      await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('idUsr');
+      await AsyncStorage.removeItem('nome');
+      await AsyncStorage.removeItem('cognome');
+      await AsyncStorage.removeItem('username');
+      await AsyncStorage.removeItem('email_parente');
       router.replace('/(auth)/login')
     } catch (error) {
       console.log(error)
-      
+
     }
   };
 
@@ -42,7 +46,23 @@ export default function Profile() {
       console.error("Errore durante il recupero del ruolo:", error);
     }
   };
-  
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      const nomeStored = await AsyncStorage.getItem('nome') || '';
+      const cognomeStored = await AsyncStorage.getItem('cognome') || '';
+      const emailStored = await AsyncStorage.getItem('email') || '';
+      const usernameStored = await AsyncStorage.getItem('username') || '';
+
+      setNome(nomeStored);
+      setCognome(cognomeStored);
+      setEmail(emailStored);
+      setUsername(usernameStored);
+    };
+
+    loadUserData();
+  }, []);
+
   return (
     <GestureHandlerRootView>
       <View className="flex-1 bg-white">
@@ -53,28 +73,28 @@ export default function Profile() {
           <View className="space-y-4 gap-4">
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Nome</Text>
-              <Text className="text-secondary text-lg">{AsyncStorage.getItem('nome')}</Text>
-              
+              <Text className="text-secondary text-lg">{nome}</Text>
+
 
             </View>
 
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Cognome</Text>
-              <Text className="text-secondary text-lg">{AsyncStorage.getItem('cognome')}</Text>
+              <Text className="text-secondary text-lg">{cognome}</Text>
             </View>
 
-            
+
 
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Email</Text>
-              <Text className="text-secondary text-lg">{AsyncStorage.getItem('email')}</Text>
+              <Text className="text-secondary text-lg">{email}</Text>
             </View>
 
             <View className="bg-gray-100 p-4 rounded-xl">
               <Text className="text-gray-500 text-sm">Username</Text>
-              <Text className="text-secondary text-lg">{AsyncStorage.getItem('username')}</Text>
+              <Text className="text-secondary text-lg">{username}</Text>
             </View>
-            
+
           </View>
 
           <TouchableOpacity

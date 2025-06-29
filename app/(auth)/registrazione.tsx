@@ -8,7 +8,7 @@ export default function Registrazione() {
   const router = useRouter();
   const [nome, setNome] = useState('');
   const [cognome, setCognome] = useState('');
-  //const [dataNascita, setDataNascita] = useState(new Date());
+  const [dataNascita, setDataNascita] = useState(new Date());
   const [username, setusername] = useState("");
   const [email, setEmail] = useState('');
   const [email_parente, setEmailParente] = useState('');
@@ -45,7 +45,8 @@ export default function Registrazione() {
       email: email.trim(),
       password,
       email_parente: email_parente ? email_parente.trim() : null,
-      username: username.trim()
+      username: username.trim(),
+      nascita: dataNascita.toISOString().split('T')[0],
     };
     console.log("DTO inviato:", JSON.stringify(registrationDto, null, 2));
 
@@ -88,9 +89,10 @@ export default function Registrazione() {
   const onDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      //setDataNascita(selectedDate);
+      setDataNascita(selectedDate);
     }
   };
+
 
   return (
     <>
@@ -138,21 +140,20 @@ export default function Registrazione() {
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
+                <Text className="text-secondary">
+                  {dataNascita ? dataNascita.toLocaleDateString() : 'Seleziona una data'}
+                </Text>
               </TouchableOpacity>
-              {/*<Text className="text-secondary">{dataNascita.toLocaleDateString()}</Text>*/}
-              {/*</TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
                   value={dataNascita}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={onDateChange}
-                  textColor="#1f2937"
-                  themeVariant="light"
-                  accentColor="#0073ff"
                 />
-              )*/}
+              )}
             </View>
+
 
             <View>
               <Text className="text-secondary mb-2 text-base">Email *</Text>

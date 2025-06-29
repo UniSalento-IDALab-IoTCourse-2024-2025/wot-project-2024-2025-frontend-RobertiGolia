@@ -26,19 +26,35 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [tempDate, setTempDate] = useState<string[]>([])
   const [refreshing, setRefreshing] = useState(false);
+  const [autistiChartLabels, setAutistiChartLabels] = useState<string[]>([]);
+  const [autistiChartData, setAutistiChartData] = useState<number[]>([]);
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
 
   const handleGetAll = async () => {
     try {
       const userId = await AsyncStorage.getItem('idUsr');
-      console.log(userId)
+      const getUser = await fetch(invokeURL+"/users/" + userId, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!getUser.ok) {
+        console.log('HTTP status:', getUser.status);
+        setError('Errore nel recupero delle corse');
+        return;
+      }
+      console.log(getUser)
+      const dataUser = await getUser.json();
+      const { username } = dataUser; 
+      console.log(username)
+      const storedUserName = await AsyncStorage.getItem('username');
+      setUserName(username);
+
       if (!userId) return setError("Utente non identificato.");
 
-      const response = await fetch(invokeURL + "/api/trip/corse", {
+      const response = await fetch(`${invokeURL}/api/trip/corse`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (!response.ok) {
@@ -48,46 +64,75 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-      const { tripList } = data;
+      const { tripsList } = data;
 
-      if (Array.isArray(tripList)) {
-        setCorseUtente(tripList);
+      if (!Array.isArray(tripsList)) return setError("Nessuna corsa trovata.");
+      setCorseUtente(tripsList);
 
-        // Dopo aver impostato le corse, recupera gli username
-        const tempUsernames: string[] = [];
+      // Chiamata corretta per recuperare tutti gli utenti
+      const getAll = await fetch(`${invokeURL}/users`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        for (let i = 0; i < tripList.length; i++) {
-          const ride = tripList[i];
-          const getUsernameAutista = await fetch(`${invokeURL}/users/${ride.idAutista}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (!getUsernameAutista.ok) {
-            console.log('Errore nel recupero username autista:', getUsernameAutista.status);
-            tempUsernames.push("N/D");
-            continue;
-          }
-
-          const info = await getUsernameAutista.json();
-          const { username } = info;
-          const { data } = info
-          tempDate.push(data || "N/D")
-          tempUsernames.push(username || "N/D");
-        }
-
-        setUserNameAutista(tempUsernames);
-      } else {
-        setError("Nessuna corsa trovata.");
+      if (!getAll.ok) {
+        console.log('HTTP status:', getAll.status);
+        setError('Errore nel recupero degli utenti');
+        return;
       }
+
+      const tutti = await getAll.json();
+      const { usersList } = tutti;
+
+      // Prepara username e date autisti
+      const fetches = tripsList.map((ride) =>
+        fetch(`${invokeURL}/api/users/${ride.idAutista}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+          .then((res) => res.ok ? res.json() : null)
+          .then((info) => ({
+            username: info?.username || "N/D",
+            data: info?.data || "N/D"
+          }))
+          .catch(() => ({
+            username: "N/D",
+            data: "N/D"
+          }))
+      );
+
+      const results = await Promise.all(fetches);
+      const usernames = results.map((r) => r.username);
+      const dates = results.map((r) => r.data);
+
+      setUserNameAutista(usernames);
+      setTempDate(dates);
+
+      // Calcolo corse per autista
+      const autisti = usersList.filter((user: any) => user.ruolo === 'autista');
+      const corsePerAutista: { [username: string]: number } = {};
+
+      autisti.forEach((autista: any) => {
+        const count = tripsList.filter((trip) => trip.idAutista === autista.id).length;
+        corsePerAutista[autista.username] = count;
+      });
+
+      const labels = Object.keys(corsePerAutista).map((username) =>
+        username.length > 8 ? username.slice(0, 6) + "…" : username
+      );
+
+      const values = Object.values(corsePerAutista);
+
+      setAutistiChartLabels(labels);
+      setAutistiChartData(values);
 
     } catch (err) {
       console.error("Errore durante il recupero delle corse:", err);
       setError("Errore di rete");
     }
   };
+
+
 
   const handleLogout = async () => {
     clearCurrentUser();
@@ -111,6 +156,7 @@ export default function Dashboard() {
     handleGetAll();
   }, []);
 
+  
   return (
     <View className="flex-1 bg-white">
       <Header />
@@ -147,36 +193,32 @@ export default function Dashboard() {
               </View>
               {/* Righe di esempio scrollabili verticalmente, massimo 4 visibili */}
               <ScrollView style={{ maxHeight: 4 * 44 }} showsVerticalScrollIndicator={true}>
-                {[
-                  { cliente: "Giovanni Rossi", autista: "mrosii", data: "2024-06-01", partenza: "Via Roma 10", destinazione: "Ospedale Centrale" },
-                  { cliente: "Maria Bianchi", autista: "fbianchi", data: "2024-06-02", partenza: "Piazza Duomo", destinazione: "Stazione FS" },
-                  { cliente: "Luca Verdi", autista: "sverdi", data: "2024-06-03", partenza: "Via Milano 5", destinazione: "Università" },
-                  { cliente: "Anna Neri", autista: "cperrone", data: "2024-06-04", partenza: "Corso Italia 22", destinazione: "Centro Commerciale" },
-                  { cliente: "Paolo Gialli", autista: "dtotti", data: "2024-06-05", partenza: "Via Firenze 8", destinazione: "Museo Civico" },
-                  { cliente: "Francesca Blu", autista: "abaglio", data: "2024-06-06", partenza: "Via Napoli 3", destinazione: "Teatro" },
-                ].map((corsa, idx, arr) => (
-                  <View key={idx} className="flex-row py-2 bg-white/60" style={{ borderBottomWidth: idx < arr.length - 1 ? 1 : 0, borderBottomColor: '#0073ff' }}>
+                {corseUtente.map((corsa, idx) => (
+
+                  <View key={corsa.id || idx} className="flex-row py-2 bg-white/60" style={{ borderBottomWidth: idx < corseUtente.length - 1 ? 1 : 0, borderBottomColor: '#0073ff' }}>
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.cliente}</Text>
+                      <Text className="text-secondary text-center">{userName ?? "Cliente"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.autista}</Text>
+                      <Text className="text-secondary text-center">{usernameAutista[idx] ?? "N/D"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 100 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.data}</Text>
+                      <Text className="text-secondary text-center">{tempDate[idx] ?? "N/D"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.partenza}</Text>
+                      <Text className="text-secondary text-center">{corsa.addA}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.destinazione}</Text>
+                      <Text className="text-secondary text-center">{corsa.addB}</Text>
                     </View>
                   </View>
                 ))}
+
+
               </ScrollView>
             </View>
           </ScrollView>
@@ -189,21 +231,21 @@ export default function Dashboard() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <BarChart
               data={{
-                labels: ["mrosii", "fbianchi", "sverdi", "cperrone", "dtotti", "abaglio", "czalone"],
+                labels: autistiChartLabels,
                 datasets: [
                   {
-                    data: [12, 41, 15, 10, 10, 24, 12],
+                    data: autistiChartData,
                     color: () => "#0073ff",
                   },
                 ],
               }}
-              width={Math.max(screenWidth - 56, 60 * 7)}
+              width={autistiChartLabels.length * 60} // 60px per barra
               height={260}
               yAxisLabel={""}
               yAxisSuffix={""}
               withHorizontalLabels={true}
               fromZero={true}
-              yAxisInterval={10}
+              yAxisInterval={1}
               chartConfig={{
                 backgroundColor: "#f3f4f6",
                 backgroundGradientFrom: "#f3f4f6",
@@ -216,7 +258,8 @@ export default function Dashboard() {
                   stroke: "#0073ff",
                 },
                 propsForLabels: {
-                  fontSize: 12,
+                  fontSize: 11,
+                  rotation: 30, // effetto visivo simulato
                   fill: "#64748b",
                 },
               }}
