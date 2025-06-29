@@ -17,9 +17,11 @@ export default function Dashboard() {
     addB: string;
     idUser: string;
     idAutista: string;
-    usernameAutista: string
-    partito: boolean
+    usernameAutista?: string;
+    dataCorsa?: string;
+    partito: boolean;
   };
+
   const [corseUtente, setCorseUtente] = useState<Ride[]>([]);
   const [usernameAutista, setUserNameAutista] = useState<string[]>([])
   const [userName, setUserName] = useState<string | null>(null);
@@ -28,12 +30,19 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [autistiChartLabels, setAutistiChartLabels] = useState<string[]>([]);
   const [autistiChartData, setAutistiChartData] = useState<number[]>([]);
+  const [utenti, setUtenti] = useState<string[]>([])
+  const [etaDistribuzione, setEtaDistribuzione] = useState({
+    over65: 0,
+    between50And65: 0,
+    under50: 0,
+  });
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
+
 
   const handleGetAll = async () => {
     try {
       const userId = await AsyncStorage.getItem('idUsr');
-      const getUser = await fetch(invokeURL+"/users/" + userId, {
+      const getUser = await fetch(invokeURL + "/users/" + userId, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -45,7 +54,7 @@ export default function Dashboard() {
       }
       console.log(getUser)
       const dataUser = await getUser.json();
-      const { username } = dataUser; 
+      const { username } = dataUser;
       console.log(username)
       const storedUserName = await AsyncStorage.getItem('username');
       setUserName(username);
@@ -102,6 +111,13 @@ export default function Dashboard() {
       );
 
       const results = await Promise.all(fetches);
+      const enrichedTrips = tripsList.map((trip, index) => ({
+        ...trip,
+        autistaUsername: results[index]?.username ?? "N/D",
+        dataCorsa: results[index]?.data ?? "N/D",
+      }));
+
+      setCorseUtente(enrichedTrips);
       const usernames = results.map((r) => r.username);
       const dates = results.map((r) => r.data);
 
@@ -110,6 +126,7 @@ export default function Dashboard() {
 
       // Calcolo corse per autista
       const autisti = usersList.filter((user: any) => user.ruolo === 'autista');
+      setUtenti(usersList.filter((user: any) => user.ruolo === 'utente'));
       const corsePerAutista: { [username: string]: number } = {};
 
       autisti.forEach((autista: any) => {
@@ -132,7 +149,73 @@ export default function Dashboard() {
     }
   };
 
+  const handleContEta = async () => {
+    const now = new Date();
+    const newCounts = {
+      over65: 0,
+      between50And65: 0,
+      under50: 0,
+    };
 
+    utenti.forEach((utente: any) => {
+      if (!utente.nascita) return;
+
+      const birthDate = new Date(utente.nascita);
+      let age = now.getFullYear() - birthDate.getFullYear();
+      const m = now.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age > 65) {
+        newCounts.over65++;
+      } else if (age >= 50) {
+        newCounts.between50And65++;
+      } else {
+        newCounts.under50++;
+      }
+    });
+
+    setEtaDistribuzione(newCounts);
+    console.log("Distribuzione età:", etaDistribuzione);
+
+  };
+  const pieData = (() => {
+    const { over65, between50And65, under50 } = etaDistribuzione;
+    const total = over65 + between50And65 + under50;
+    if (total === 0) {
+      return [{
+        name: "Nessun dato",
+        population: 1,
+        color: "#d1d5db",
+        legendFontColor: "#9ca3af",
+        legendFontSize: 14,
+      }];
+    }
+    return [
+      {
+        name: "Over 65",
+        population: over65,
+        color: "#0073ff",
+        legendFontColor: "#64748b",
+        legendFontSize: 14,
+      },
+      {
+        name: "Età 50-65",
+        population: between50And65,
+        color: "#22c55e",
+        legendFontColor: "#64748b",
+        legendFontSize: 14,
+      },
+      {
+        name: "Under 50",
+        population: under50,
+        color: "#f59e42",
+        legendFontColor: "#64748b",
+        legendFontSize: 14,
+      },
+    ];
+  })();
 
   const handleLogout = async () => {
     clearCurrentUser();
@@ -154,9 +237,12 @@ export default function Dashboard() {
   };
   useEffect(() => {
     handleGetAll();
+
+    handleContEta();
+
   }, []);
 
-  
+
   return (
     <View className="flex-1 bg-white">
       <Header />
@@ -196,6 +282,7 @@ export default function Dashboard() {
                 {corseUtente.map((corsa, idx) => (
 
                   <View key={corsa.id || idx} className="flex-row py-2 bg-white/60" style={{ borderBottomWidth: idx < corseUtente.length - 1 ? 1 : 0, borderBottomColor: '#0073ff' }}>
+                    
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{userName ?? "Cliente"}</Text>
                     </View>
@@ -273,9 +360,27 @@ export default function Dashboard() {
           <Text className="text-lg font-semibold text-secondary mb-2">Distribuzione clienti</Text>
           <PieChart
             data={[
-              { name: "Over 65", population: 3, color: "#0073ff", legendFontColor: "#64748b", legendFontSize: 14 },
-              { name: "Età 50-65", population: 4, color: "#22c55e", legendFontColor: "#64748b", legendFontSize: 14 },
-              { name: "Under 50", population: 8, color: "#f59e42", legendFontColor: "#64748b", legendFontSize: 14 },
+              {
+                name: "Over 65",
+                population: etaDistribuzione.over65,
+                color: "#0073ff",
+                legendFontColor: "#64748b",
+                legendFontSize: 14,
+              },
+              {
+                name: "Età 50-65",
+                population: etaDistribuzione.between50And65,
+                color: "#22c55e",
+                legendFontColor: "#64748b",
+                legendFontSize: 14,
+              },
+              {
+                name: "Under 50",
+                population: etaDistribuzione.under50,
+                color: "#f59e42",
+                legendFontColor: "#64748b",
+                legendFontSize: 14,
+              },
             ]}
             width={screenWidth - 56}
             height={180}
@@ -292,6 +397,7 @@ export default function Dashboard() {
             absolute
             style={{ borderRadius: 16 }}
           />
+
         </View>
         <TouchableOpacity
           onPress={handleLogout}
