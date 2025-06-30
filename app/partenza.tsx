@@ -45,6 +45,7 @@ export default function Partenza() {
       }
   
       const takeSeatResult = await takeSeat.json();
+      console.log(takeSeatResult)
       
   
       if (takeSeatResult.result !== 4) {

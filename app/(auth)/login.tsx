@@ -68,6 +68,7 @@ export default function Login() {
       }
       
       const data = await response.json();
+      console.log("Risposta API X:", data);
       const { jwt } = data;
       console.log(jwt)
       if (jwt) {
@@ -117,9 +118,9 @@ export default function Login() {
         router.replace('/(tabs)/profile');
       } else if (ruolo === 'amministratore') {
         router.replace('/dashboard')
-
       }
 
+      console.log("Dati autista aggiornati/mostrati:", info);
 
     } catch (error) {
       console.error("Errore durante il login:", error);

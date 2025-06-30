@@ -13,8 +13,8 @@ export default function Chatbot() {
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
   const [n_posti, setNPosti] = useState(Number)
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev'
-  const [autistiDisponibili, setAutistiDisponibili] = useState<string[]>([]);
-
+  const [autistiDisponibili, setAutistiDisponibili] = useState<{ nome: string, id: string }[]>([]);
+  const [idAutisti, setidAutisti] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [output, setOutput] = useState('');
 
@@ -22,44 +22,43 @@ export default function Chatbot() {
   const handleSendMessage = async () => {
     try {
       if (!inputText.trim()) return;
-  
+
       setMessages(prev => [...prev, { text: inputText, isUser: true }]);
-  
+
       const response = await fetch(`${invokeURL}/run-model/${inputText}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-  
+
       if (!response.ok) {
         console.log('HTTP error:', response.status);
         setError('Errore durante la richiesta');
         return;
       }
-  
+
       const data = await response.json();
       const driversList = data?.output?.drivers || [];
-  
-      const disponibili: string[] = [];
+
+      const disponibili: { nome: string, id: string }[] = [];
       console.log(driversList)
       for (const driverName of driversList) {
         const formatted = formatDriverName(driverName);
-  
+
         const getAutista = await fetch(`${invokeURL}/username/${formatted}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
-  
+
         if (!getAutista.ok) {
           console.log('Errore fetch autista:', getAutista.status);
           continue;
         }
-  
+
         const autista = await getAutista.json();
-        const { disponibile, n_posti, id } = autista;
-  
+        const { n_posti, id } = autista;
+
         if (n_posti > 0) {
-          disponibili.push(formatted);
-          await AsyncStorage.setItem('idAutistaUsato', id);
+          disponibili.push({ nome: formatted, id });
         } else {
           const changeDispo = await fetch(`${invokeURL}/users/changeDispo/${id}`, {
             method: 'PUT',
@@ -67,48 +66,48 @@ export default function Chatbot() {
               'Content-Type': 'application/json'
             },
           });
-  
+
           if (!changeDispo.ok) {
             const errText = await changeDispo.text();
             console.log('Errore HTTP ' + changeDispo.status + ': ' + errText);
             setError('Cambio disponibilità fallito');
             continue;
           }
-  
+
           // Solo log per debug, senza riusare 'data'
           const changeResponse = await changeDispo.json();
           console.log('Messaggio cambio disponibilità:', changeResponse.message);
         }
       }
-  
+
       const messaggioOutput = disponibili.length > 0
         ? "Seleziona un autista tra quelli disponibili:"
         : "Nessun autista disponibile.";
-  
+
       setAutistiDisponibili(disponibili);
-      setAvailableDrivers(disponibili);
-  
+      setAvailableDrivers(disponibili.map(a => a.nome));
+
       setTimeout(() => {
         setMessages(prev => [...prev, { text: messaggioOutput, isUser: false }]);
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 500);
-  
+
       setInputText("");
     } catch (error) {
       console.error("Errore nella comunicazione:", error);
       setError("Errore imprevisto");
     }
   };
-  
+
 
   const formatDriverName = (fullName: string) => {
     const parts = fullName.trim().toLowerCase().split(" ").filter(Boolean);
     if (parts.length < 2) return fullName.replace(/\s/g, "").toLowerCase();
-  
+
     const [firstName, ...rest] = parts;
     return `${firstName[0]}${rest.join("")}`;
   };
-  
+
   return (
     <View className="flex-1 bg-white">
       <Header />
@@ -139,24 +138,20 @@ export default function Chatbot() {
                   </Text>
                   {!message.isUser && index === messages.length - 1 && availableDrivers.length > 0 && (
                     <View className="mt-3">
-                      {availableDrivers.map((driver, i) => {
-                        const formatted = formatDriverName(driver);
-                        console.log("Driver formattato:", formatted);
-                        return (
-                          <TouchableOpacity
-                            key={i}
-                            className={`px-4 py-2 rounded-xl mb-2 ${selectedDriver === formatted ? "bg-green-500" : "bg-[#0073ff]"}`}
-                            onPress={async () => {
-                              setSelectedDriver(formatted);
-                              await AsyncStorage.setItem('usernameAutista', formatted);
-                              router.replace("/partenza");
-                            }}
-                          >
-                            <Text className="text-white text-center">{formatted}</Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-
+                      {autistiDisponibili.map((autista, i) => (
+                        <TouchableOpacity
+                          key={i}
+                          className={`px-4 py-2 rounded-xl mb-2 ${selectedDriver === autista.nome ? "bg-green-500" : "bg-[#0073ff]"}`}
+                          onPress={async () => {
+                            setSelectedDriver(autista.nome);
+                            await AsyncStorage.setItem('usernameAutista', autista.nome);
+                            await AsyncStorage.setItem('idAutistaUsato', autista.id);
+                            router.replace("/partenza");
+                          }}
+                        >
+                          <Text className="text-white text-center">{autista.nome}</Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
                   )}
 

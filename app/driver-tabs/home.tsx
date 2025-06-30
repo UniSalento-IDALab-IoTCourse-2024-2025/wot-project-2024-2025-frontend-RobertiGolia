@@ -108,7 +108,7 @@ export default function Home() {
       }
   
       const leaveSeatResult = await leaveSeat.json();
-      console.log("Risultato leaveeSeat:", leaveSeatResult);
+      console.log("Risultato leaveSeat:", leaveSeatResult);
   
       if (leaveSeatResult.result !== 4) {
         Alert.alert("Errore", leaveSeatResult.message);
