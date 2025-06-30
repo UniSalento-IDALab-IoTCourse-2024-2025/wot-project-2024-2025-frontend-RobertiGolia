@@ -160,14 +160,25 @@ export default function RideBooked() {
               {/* Header tabella */}
               <View className="border-b-2 border-secondary mb-2">
                 <View className="flex-row py-4">
-                  {["Autista", "Parti", "Data", "Partenza", "Destinazione"].map((col) => (
-                    <React.Fragment key={col}>
-                      <View style={{ width: col === "Partenza" || col === "Destinazione" ? 150 : 120 }} className="px-2">
-                        <Text className="font-bold text-secondary text-center">{col}</Text>
-                      </View>
-                      <View className="w-[1] bg-gray-300" />
-                    </React.Fragment>
-                  ))}
+                  <View style={{ width: 120 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Autista</Text>
+                  </View>
+                  <View className="w-[1] bg-gray-300" />
+                  <View style={{ width: 100 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Parti</Text>
+                  </View>
+                  <View className="w-[1] bg-gray-300" />
+                  <View style={{ width: 120 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Data</Text>
+                  </View>
+                  <View className="w-[1] bg-gray-300" />
+                  <View style={{ width: 150 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Partenza</Text>
+                  </View>
+                  <View className="w-[1] bg-gray-300" />
+                  <View style={{ width: 150 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Destinazione</Text>
+                  </View>
                 </View>
               </View>
 
@@ -175,7 +186,7 @@ export default function RideBooked() {
               {corseUtente.map((ride, index) => (
                 <View key={ride.id || index} className="border-b border-gray-200">
                   <View className="flex-row py-4">
-                    <View style={{ width: 120 }} className="px-2">
+                    <View style={{ width: 120 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{usernameAutista[index] || "N/D"}</Text>
                     </View>
                     <View className="w-[1] bg-gray-200" />
@@ -205,15 +216,15 @@ export default function RideBooked() {
 
                     </View>
                     <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 120 }} className="px-2">
+                    <View style={{ width: 120 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{tempDate[index]}</Text>
                     </View>
                     <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 150 }} className="px-2">
+                    <View style={{ width: 150 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{ride.addA}</Text>
                     </View>
                     <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 150 }} className="px-2">
+                    <View style={{ width: 150 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{ride.addB}</Text>
                     </View>
 

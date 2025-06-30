@@ -10,8 +10,10 @@ export default function About() {
         
         <View className="bg-gray-100 p-4 rounded-xl">
           <Text className="text-secondary text-base leading-6">
-            Progetto work in progress.{"\n\n"}
-            Creato da Roberti Luigi e Golia Cristian, per l'esame di Internet of Things.
+            "Taxi sociale", un'app per permettere a chiunque di spostarsi con facilità
+            (versione alpha).{"\n\n"}
+            Creato da Roberti Luigi e Golia Cristian, per l'esame di "Internet of Things"
+            del corso magistrale in Ingegneria informatica, Unisalento.
           </Text>
         </View>
       </View>

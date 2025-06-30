@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "expo-router";
-import { View, Text, ScrollView, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Dimensions, TouchableOpacity, RefreshControl } from "react-native";
 import Header from "../components/Header";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
 import { clearCurrentUser, getCurrentUser } from "../constants/currentUser";
@@ -20,13 +20,13 @@ export default function Dashboard() {
     usernameAutista?: string;
     dataCorsa?: string;
     partito: boolean;
+    clienteUsername?: string;
+    autistaUsername?: string;
   };
 
   const [corseUtente, setCorseUtente] = useState<Ride[]>([]);
-  const [usernameAutista, setUserNameAutista] = useState<string[]>([])
   const [userName, setUserName] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const [tempDate, setTempDate] = useState<string[]>([])
   const [refreshing, setRefreshing] = useState(false);
   const [autistiChartLabels, setAutistiChartLabels] = useState<string[]>([]);
   const [autistiChartData, setAutistiChartData] = useState<number[]>([]);
@@ -76,7 +76,6 @@ export default function Dashboard() {
       const { tripsList } = data;
 
       if (!Array.isArray(tripsList)) return setError("Nessuna corsa trovata.");
-      setCorseUtente(tripsList);
 
       // Chiamata corretta per recuperare tutti gli utenti
       const getAll = await fetch(`${invokeURL}/users`, {
@@ -93,44 +92,37 @@ export default function Dashboard() {
       const tutti = await getAll.json();
       const { usersList } = tutti;
 
-      // Prepara username e date autisti
-      const fetches = tripsList.map((ride) =>
-        fetch(`${invokeURL}/api/users/${ride.idAutista}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        })
-          .then((res) => res.ok ? res.json() : null)
-          .then((info) => ({
-            username: info?.username || "N/D",
-            data: info?.data || "N/D"
-          }))
-          .catch(() => ({
-            username: "N/D",
-            data: "N/D"
-          }))
-      );
-
-      const results = await Promise.all(fetches);
-      const enrichedTrips = tripsList.map((trip, index) => ({
-        ...trip,
-        autistaUsername: results[index]?.username ?? "N/D",
-        dataCorsa: results[index]?.data ?? "N/D",
-      }));
+      // Creiamo una mappa userID-user object per ricerche efficienti
+      const userMap = usersList.reduce((acc: { [key: string]: any }, user: any) => {
+        acc[user.id] = user;
+        return acc;
+      }, {});
+      
+      const enrichedTrips = tripsList.map((trip: any) => {
+        const cliente = userMap[trip.idUser];
+        const autista = userMap[trip.idAutista];
+        const dataCorsa = autista?.data ? new Date(autista.data).toLocaleDateString() : 'N/D';
+        
+        return {
+          ...trip,
+          clienteUsername: cliente?.username || 'N/D',
+          autistaUsername: autista?.username || 'N/D',
+          dataCorsa: dataCorsa,
+        };
+      });
 
       setCorseUtente(enrichedTrips);
-      const usernames = results.map((r) => r.username);
-      const dates = results.map((r) => r.data);
 
-      setUserNameAutista(usernames);
-      setTempDate(dates);
+      const utentiFiltrati = usersList.filter((user: any) => user.ruolo === 'utente');
+      setUtenti(utentiFiltrati);
+      handleContEta(utentiFiltrati);
 
       // Calcolo corse per autista
       const autisti = usersList.filter((user: any) => user.ruolo === 'autista');
-      setUtenti(usersList.filter((user: any) => user.ruolo === 'utente'));
       const corsePerAutista: { [username: string]: number } = {};
 
       autisti.forEach((autista: any) => {
-        const count = tripsList.filter((trip) => trip.idAutista === autista.id).length;
+        const count = tripsList.filter((trip: any) => trip.idAutista === autista.id).length;
         corsePerAutista[autista.username] = count;
       });
 
@@ -149,7 +141,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleContEta = async () => {
+  const handleContEta = (utentiDaCalcolare: any[]) => {
     const now = new Date();
     const newCounts = {
       over65: 0,
@@ -157,7 +149,7 @@ export default function Dashboard() {
       under50: 0,
     };
 
-    utenti.forEach((utente: any) => {
+    utentiDaCalcolare.forEach((utente: any) => {
       if (!utente.nascita) return;
 
       const birthDate = new Date(utente.nascita);
@@ -177,9 +169,14 @@ export default function Dashboard() {
     });
 
     setEtaDistribuzione(newCounts);
-    console.log("Distribuzione età:", etaDistribuzione);
-
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await handleGetAll();
+    setRefreshing(false);
+  }, []);
+
   const pieData = (() => {
     const { over65, between50And65, under50 } = etaDistribuzione;
     const total = over65 + between50And65 + under50;
@@ -219,7 +216,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     clearCurrentUser();
-    // Forziamo un reload completo dell'app
+    // Forziamo un refrash 
     try {
       //await Updates.reloadAsync();
       AsyncStorage.removeItem('nome')
@@ -237,23 +234,22 @@ export default function Dashboard() {
   };
   useEffect(() => {
     handleGetAll();
-
-    handleContEta();
-
   }, []);
 
 
   return (
     <View className="flex-1 bg-white">
       <Header />
-      <ScrollView className="flex-1 p-6">
+      <ScrollView 
+        className="flex-1 p-6 mb-10"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <Text className="text-3xl font-bold text-secondary mb-8">Pannello di controllo</Text>
         {/* Lista corse prenotate */}
         <View className="mb-8 bg-gray-100 p-4 rounded-xl">
           <Text className="text-lg font-semibold text-secondary mb-2">Corse prenotate</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={true}>
             <View>
-              {/* Header della tabella */}
               <View className="border-b-2" style={{ borderBottomColor: '#0073ff' }}>
                 <View className="flex-row py-2">
                   <View style={{ width: 120 }} className="px-2">
@@ -277,22 +273,21 @@ export default function Dashboard() {
                   </View>
                 </View>
               </View>
-              {/* Righe di esempio scrollabili verticalmente, massimo 4 visibili */}
               <ScrollView style={{ maxHeight: 4 * 44 }} showsVerticalScrollIndicator={true}>
                 {corseUtente.map((corsa, idx) => (
 
                   <View key={corsa.id || idx} className="flex-row py-2 bg-white/60" style={{ borderBottomWidth: idx < corseUtente.length - 1 ? 1 : 0, borderBottomColor: '#0073ff' }}>
                     
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{userName ?? "Cliente"}</Text>
+                      <Text className="text-secondary text-center">{corsa.clienteUsername ?? "Cliente"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{usernameAutista[idx] ?? "N/D"}</Text>
+                      <Text className="text-secondary text-center">{corsa.autistaUsername ?? "N/D"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 100 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{tempDate[idx] ?? "N/D"}</Text>
+                      <Text className="text-secondary text-center">{corsa.dataCorsa ?? "N/D"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
@@ -332,7 +327,8 @@ export default function Dashboard() {
               yAxisSuffix={""}
               withHorizontalLabels={true}
               fromZero={true}
-              yAxisInterval={1}
+              segments={autistiChartData.length > 0 && Math.max(...autistiChartData) > 0 ? Math.max(...autistiChartData) : 4}
+            
               chartConfig={{
                 backgroundColor: "#f3f4f6",
                 backgroundGradientFrom: "#f3f4f6",
@@ -346,7 +342,7 @@ export default function Dashboard() {
                 },
                 propsForLabels: {
                   fontSize: 11,
-                  rotation: 30, // effetto visivo simulato
+                  //rotation: 30, // effetto visivo simulato per vedere tutto il nome
                   fill: "#64748b",
                 },
               }}

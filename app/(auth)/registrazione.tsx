@@ -140,9 +140,7 @@ export default function Registrazione() {
                 className="w-full bg-gray-100 rounded-xl px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text className="text-secondary">
-                  {dataNascita ? dataNascita.toLocaleDateString() : 'Seleziona una data'}
-                </Text>
+                <Text className="text-secondary">{dataNascita.toLocaleDateString()}</Text>
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
@@ -150,6 +148,9 @@ export default function Registrazione() {
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={onDateChange}
+                  textColor="#1f2937"
+                  themeVariant="light"
+                  accentColor="#0073ff"
                 />
               )}
             </View>
