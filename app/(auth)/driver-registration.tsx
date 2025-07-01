@@ -19,6 +19,7 @@ export default function DriverRegistration() {
   const [ruolo, setRuolo] = useState("autista")
   const [checked, setChecked] = React.useState('first');
   const [error, setError] = useState('')
+  const [posti, setPosti] = useState('');
 
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
 
@@ -44,6 +45,11 @@ export default function DriverRegistration() {
       return;
     }
 
+    if (!posti || isNaN(Number(posti)) || Number(posti) <= 0) {
+      Alert.alert('Errore', 'Inserisci un numero di posti valido');
+      return;
+    }
+
     const registrationDto = {
       nome,
       cognome,
@@ -52,7 +58,8 @@ export default function DriverRegistration() {
       veicolo,
       disponibile,
       ruolo,
-      data_nascita: dataNascita.toISOString().split('T')[0] // opzionale se vuoi mandare anche la data
+      data_nascita: dataNascita.toISOString().split('T')[0], // opzionale se vuoi mandare anche la data
+      n_posti: Number(posti)
     };
 
     try {
@@ -209,6 +216,17 @@ export default function DriverRegistration() {
               <TouchableOpacity onPress={() => setChecked('terzo')}>
                 <Text style={{ fontSize: 16 }}>Camper</Text>
               </TouchableOpacity>
+            </View>
+
+            <View>
+              <Text className="text-secondary mb-2 text-base">Numero di posti *</Text>
+              <TextInput
+                className="w-full bg-gray-100 rounded-xl px-4 py-3"
+                placeholder="Inserisci il numero di posti del veicolo"
+                value={posti}
+                onChangeText={setPosti}
+                keyboardType="numeric"
+              />
             </View>
           </View>
 

@@ -259,10 +259,7 @@ export default function Dashboard() {
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Autista</Text>
                   </View>
-                  <View style={{ width: 1, backgroundColor: '#0073ff' }} />
-                  <View style={{ width: 100 }} className="px-2">
-                    <Text className="font-bold text-secondary text-center">Data</Text>
-                  </View>
+                  
                   <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Partenza</Text>
@@ -271,6 +268,7 @@ export default function Dashboard() {
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Destinazione</Text>
                   </View>
+                  <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                 </View>
               </View>
               <ScrollView style={{ maxHeight: 4 * 44 }} showsVerticalScrollIndicator={true}>
@@ -286,16 +284,16 @@ export default function Dashboard() {
                       <Text className="text-secondary text-center">{corsa.autistaUsername ?? "N/D"}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
-                    <View style={{ width: 100 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{corsa.dataCorsa ?? "N/D"}</Text>
-                    </View>
-                    <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{corsa.addA}</Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                     <View style={{ width: 120 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{corsa.addB}</Text>
+                    </View>
+                    <View style={{ width: 1, backgroundColor: '#0073ff' }} />
+                    <View style={{ width: 100 }} className="px-2 justify-center items-center">
+                      <Text className="text-secondary text-center">{corsa.dataCorsa ?? "N/D"}</Text>
                     </View>
                   </View>
                 ))}

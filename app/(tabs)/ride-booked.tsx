@@ -168,16 +168,16 @@ export default function RideBooked() {
                     <Text className="font-bold text-secondary text-center">Parti</Text>
                   </View>
                   <View className="w-[1] bg-gray-300" />
-                  <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                    <Text className="font-bold text-secondary text-center">Data</Text>
-                  </View>
-                  <View className="w-[1] bg-gray-300" />
                   <View style={{ width: 150 }} className="px-2 justify-center items-center">
                     <Text className="font-bold text-secondary text-center">Partenza</Text>
                   </View>
                   <View className="w-[1] bg-gray-300" />
                   <View style={{ width: 150 }} className="px-2 justify-center items-center">
                     <Text className="font-bold text-secondary text-center">Destinazione</Text>
+                  </View>
+                  <View className="w-[1] bg-gray-300" />
+                  <View style={{ width: 120 }} className="px-2 justify-center items-center">
+                    <Text className="font-bold text-secondary text-center">Data</Text>
                   </View>
                 </View>
               </View>
@@ -215,10 +215,7 @@ export default function RideBooked() {
                       )}
 
                     </View>
-                    <View className="w-[1] bg-gray-200" />
-                    <View style={{ width: 120 }} className="px-2 justify-center items-center">
-                      <Text className="text-secondary text-center">{tempDate[index]}</Text>
-                    </View>
+                    
                     <View className="w-[1] bg-gray-200" />
                     <View style={{ width: 150 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{ride.addA}</Text>
@@ -227,7 +224,10 @@ export default function RideBooked() {
                     <View style={{ width: 150 }} className="px-2 justify-center items-center">
                       <Text className="text-secondary text-center">{ride.addB}</Text>
                     </View>
-
+                    <View className="w-[1] bg-gray-200" />
+                    <View style={{ width: 120 }} className="px-2 justify-center items-center">
+                      <Text className="text-secondary text-center">{tempDate[index]}</Text>
+                    </View>
                   </View>
                 </View>
               ))}
