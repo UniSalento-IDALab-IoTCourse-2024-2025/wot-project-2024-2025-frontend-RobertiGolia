@@ -31,13 +31,16 @@ export default function Dashboard() {
   const [autistiChartLabels, setAutistiChartLabels] = useState<string[]>([]);
   const [autistiChartData, setAutistiChartData] = useState<number[]>([]);
   const [utenti, setUtenti] = useState<string[]>([])
+  const [autisti, setAutisti] = useState<any[]>([])
   const [etaDistribuzione, setEtaDistribuzione] = useState({
     over65: 0,
     between50And65: 0,
     under50: 0,
   });
+  const [labels, setLabels] = useState<string[]>([]);
+  const [corsePerAutista, setCorsePerAutista] = useState<{ [username: string]: number }>({});
+  const [chartWidth, setChartWidth] = useState<number>(0);
   const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
-
 
   const handleGetAll = async () => {
     try {
@@ -118,21 +121,32 @@ export default function Dashboard() {
       handleContEta(utentiFiltrati);
 
       // Calcolo corse per autista
-      const autisti = usersList.filter((user: any) => user.ruolo === 'autista');
-      const corsePerAutista: { [username: string]: number } = {};
-
-      autisti.forEach((autista: any) => {
+      const autistiLocal = usersList.filter((user: any) => user.ruolo === 'autista');
+      setAutisti(autistiLocal);
+      const corsePerAutistaObj: { [username: string]: number } = {};
+      autistiLocal.forEach((autista: any) => {
         const count = tripsList.filter((trip: any) => trip.idAutista === autista.id).length;
-        corsePerAutista[autista.username] = count;
+        corsePerAutistaObj[autista.username] = count;
       });
+      setCorsePerAutista(corsePerAutistaObj);
+      // Mostra ogni username per intero, senza abbreviazioni, e senza duplicati
+      const labelsSet = new Set<string>();
+      const labelsArr = Object.keys(corsePerAutistaObj)
+        .filter((username: string) => username && username !== 'null' && username !== 'undefined')
+        .filter((username: string) => {
+          if (labelsSet.has(username)) return false;
+          labelsSet.add(username);
+          return true;
+        });
+      setLabels(labelsArr);
+      // Calcola la larghezza della colonna in base al nome più lungo
+      const maxUsernameLength = labelsArr.reduce((max: number, u: string) => Math.max(max, u.length), 0);
+      const colWidth = Math.max(60, maxUsernameLength * 11 + 16); // 11px per lettera + padding
+      setChartWidth(labelsArr.length * colWidth);
 
-      const labels = Object.keys(corsePerAutista).map((username) =>
-        username.length > 8 ? username.slice(0, 6) + "…" : username
-      );
+      const values = Object.values(corsePerAutistaObj);
 
-      const values = Object.values(corsePerAutista);
-
-      setAutistiChartLabels(labels);
+      setAutistiChartLabels(labelsArr);
       setAutistiChartData(values);
 
     } catch (err) {
@@ -252,6 +266,7 @@ export default function Dashboard() {
             <View>
               <View className="border-b-2" style={{ borderBottomColor: '#0073ff' }}>
                 <View className="flex-row py-2">
+
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Cliente</Text>
                   </View>
@@ -259,7 +274,6 @@ export default function Dashboard() {
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Autista</Text>
                   </View>
-                  
                   <View style={{ width: 1, backgroundColor: '#0073ff' }} />
                   <View style={{ width: 120 }} className="px-2">
                     <Text className="font-bold text-secondary text-center">Partenza</Text>
@@ -269,6 +283,9 @@ export default function Dashboard() {
                     <Text className="font-bold text-secondary text-center">Destinazione</Text>
                   </View>
                   <View style={{ width: 1, backgroundColor: '#0073ff' }} />
+                  <View style={{ width: 100 }} className="px-2">
+                    <Text className="font-bold text-secondary text-center">Data</Text>
+                  </View>
                 </View>
               </View>
               <ScrollView style={{ maxHeight: 4 * 44 }} showsVerticalScrollIndicator={true}>
@@ -308,45 +325,98 @@ export default function Dashboard() {
         {/* Grafico 2: LineChart */}
         <View className="mb-8 bg-gray-100 p-4 rounded-xl">
           <Text className="text-lg font-semibold text-secondary mb-2">Corse per autista</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <BarChart
-              data={{
-                labels: autistiChartLabels,
-                datasets: [
-                  {
-                    data: autistiChartData,
+          {labels.length === 0 || chartWidth === 0 ? (
+            <Text className="text-center text-gray-400 py-12">Nessun dato disponibile</Text>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+              {/* Etichette Y fisse migliorate */}
+              <View style={{ height: 260, justifyContent: 'space-between', alignItems: 'flex-end', marginRight: 4, paddingTop: 8, paddingBottom: 8 }}>
+                {(() => {
+                  const chartHeight = 260 - 16; // padding top+bottom
+                  const segments = labels.length > 0
+                    ? (() => {
+                        const max = Math.max(...labels.map((lab: string) => corsePerAutista[lab] ?? 0));
+                        if (max <= 1) return 1;
+                        if (max === 2) return 2;
+                        if (max === 3) return 3;
+                        return 4;
+                      })()
+                    : 4;
+                  const maxValue = labels.length > 0 ? Math.max(...labels.map((lab: string) => corsePerAutista[lab] ?? 0)) : 0;
+                  // Genera le etichette Y dall'alto verso il basso, escludendo lo zero
+                  return Array.from({ length: segments }, (_, i) => {
+                    const value = Math.round(maxValue - (maxValue / segments) * i);
+                    const isFirst = i === 0;
+                    return (
+                      <Text
+                        key={i}
+                        style={{
+                          height: chartHeight / segments,
+                          textAlign: 'right',
+                          color: '#64748b',
+                          fontSize: 12,
+                          includeFontPadding: false,
+                          textAlignVertical: 'bottom',
+                          paddingBottom: 3,
+                          marginTop: value === 1 ? -4 : 0,
+                        }}
+                      >
+                        {value}
+                      </Text>
+                    );
+                  });
+                })()}
+              </View>
+              {/* Grafico scrollabile */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <BarChart
+                  data={{
+                    labels: labels,
+                    datasets: [
+                      {
+                        data: labels.map((lab: string) => corsePerAutista[lab] ?? 0),
+                        color: () => "#0073ff",
+                      },
+                    ],
+                  }}
+                  width={chartWidth}
+                  height={260}
+                  yAxisLabel={""}
+                  yAxisSuffix={""}
+                  withHorizontalLabels={false} // Disabilita le etichette Y del grafico
+                  fromZero={true}
+                  segments={
+                    labels.length > 0
+                      ? (() => {
+                          const max = Math.max(...labels.map((lab: string) => corsePerAutista[lab] ?? 0));
+                          if (max <= 1) return 1;
+                          if (max === 2) return 2;
+                          if (max === 3) return 3;
+                          return 4;
+                        })()
+                      : 4
+                  }
+                  chartConfig={{
+                    backgroundColor: "#f3f4f6",
+                    backgroundGradientFrom: "#f3f4f6",
+                    backgroundGradientTo: "#f3f4f6",
+                    decimalPlaces: 0,
                     color: () => "#0073ff",
-                  },
-                ],
-              }}
-              width={autistiChartLabels.length * 60} // 60px per barra
-              height={260}
-              yAxisLabel={""}
-              yAxisSuffix={""}
-              withHorizontalLabels={true}
-              fromZero={true}
-              segments={autistiChartData.length > 0 && Math.max(...autistiChartData) > 0 ? Math.max(...autistiChartData) : 4}
-            
-              chartConfig={{
-                backgroundColor: "#f3f4f6",
-                backgroundGradientFrom: "#f3f4f6",
-                backgroundGradientTo: "#f3f4f6",
-                decimalPlaces: 0,
-                color: () => "#0073ff",
-                labelColor: () => "#64748b",
-                propsForBackgroundLines: {
-                  strokeDasharray: "4",
-                  stroke: "#0073ff",
-                },
-                propsForLabels: {
-                  fontSize: 11,
-                  //rotation: 30, // effetto visivo simulato per vedere tutto il nome
-                  fill: "#64748b",
-                },
-              }}
-              style={{ borderRadius: 16, paddingRight: 50, paddingLeft: 20 }}
-            />
-          </ScrollView>
+                    labelColor: () => "#64748b",
+                    propsForBackgroundLines: {
+                      strokeDasharray: "4",
+                      stroke: "#0073ff",
+                    },
+                    propsForLabels: {
+                      fontSize: 11,
+                      fill: "#64748b",
+                    },
+                  }}
+                  style={{ borderRadius: 16, paddingRight: 0, paddingLeft: 0 }}
+                />
+              </ScrollView>
+            </View>
+          )}
         </View>
 
         {/* Grafico 3: PieChart */}

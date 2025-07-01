@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import * as Updates from 'expo-updates';
 import { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View, RefreshControl } from "react-native";
 import Header from "../../components/Header";
 import { clearCurrentUser } from "../../constants/currentUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,8 +15,7 @@ export default function Profile() {
   const [cognome, setCognome] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
-
-
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleLogout = async () => {
     clearCurrentUser();
@@ -38,32 +37,59 @@ export default function Profile() {
     }
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const id = await AsyncStorage.getItem('idUsr');
-      const nomeValue = await AsyncStorage.getItem('nome');
-      const cognomeValue = await AsyncStorage.getItem('cognome');
-      const emailValue = await AsyncStorage.getItem('email');
-      const usernameValue = await AsyncStorage.getItem('username');
-      const n_posti_value = await AsyncStorage.getItem('n_posti');
+  const fetchUserData = async () => {
+    const id = await AsyncStorage.getItem('idUsr');
+    const nomeValue = await AsyncStorage.getItem('nome');
+    const cognomeValue = await AsyncStorage.getItem('cognome');
+    const emailValue = await AsyncStorage.getItem('email');
+    const usernameValue = await AsyncStorage.getItem('username');
+    const n_posti_value = await AsyncStorage.getItem('n_posti');
 
-      if (id !== null) setIdUsr(id);
-      if (nomeValue !== null) setNome(nomeValue);
-      if (cognomeValue !== null) setCognome(cognomeValue);
-      if (emailValue !== null) setEmail(emailValue);
-      if (usernameValue !== null) setUsername(usernameValue);
-      if (n_posti_value !== null) {
-        setNPosti(parseInt(n_posti_value, 10));
+    if (id !== null) setIdUsr(id);
+    if (nomeValue !== null) setNome(nomeValue);
+    if (cognomeValue !== null) setCognome(cognomeValue);
+    if (emailValue !== null) setEmail(emailValue);
+    if (usernameValue !== null) setUsername(usernameValue);
+    if (n_posti_value !== null) {
+      setNPosti(parseInt(n_posti_value, 10));
+    }
+
+    if (id) {
+      try {
+        const invokeURL = 'https://nci92kc6ri.execute-api.us-east-1.amazonaws.com/dev';
+        const response = await fetch(`${invokeURL}/users/${id}`);
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.n_posti !== undefined && userData.n_posti !== null) {
+            setNPosti(userData.n_posti);
+            await AsyncStorage.setItem('n_posti', userData.n_posti.toString());
+          }
+        }
+      } catch (err) {
+        
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchUserData();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    setRefreshing(false);
+  };
+
   return (
     <GestureHandlerRootView>
       <View className="flex-1 bg-white">
         <Header />
 
-        <ScrollView className="p-6">
+        <ScrollView
+          className="p-6"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
 
           <Text className="text-3xl font-bold text-secondary mb-8">Il tuo profilo</Text>
 

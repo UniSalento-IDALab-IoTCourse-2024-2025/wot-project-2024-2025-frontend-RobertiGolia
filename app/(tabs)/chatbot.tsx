@@ -164,6 +164,7 @@ export default function Chatbot() {
             <TextInput
               className="flex-1 border border-gray-300 rounded-xl px-4 py-2 mr-2 bg-white"
               placeholder="Scrivi un messaggio..."
+              placeholderTextColor="#64748b"
               value={inputText}
               onChangeText={setInputText}
               onSubmitEditing={handleSendMessage}
