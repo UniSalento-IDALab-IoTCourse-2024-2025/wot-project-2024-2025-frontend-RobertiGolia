@@ -1,4 +1,4 @@
-#Taxi Sociale App – Progetto IoT 2024/2025
+# Taxi Sociale App – Progetto IoT 2024/2025
 
 ## Descrizione del progetto
 
@@ -34,7 +34,7 @@ Il sistema si basa su un'architettura modulare, composta da un backend (microser
 - **ModelServiceProject**: Supporto agli utenti tramite chat integrata per domande frequenti e assistenza.
 - **Frontend**: Applicazione React Native per la fruizione dei servizi da parte degli utenti.
 
-## Repositori dei componenti
+## Repository dei componenti
 
 - UserServiceProject: [UserServiceProject](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-UserServiceProject-RobertiGolia)
 - TripServiceProject: [TripServiceProject](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-TripServiceProject-RobertiGolia)
