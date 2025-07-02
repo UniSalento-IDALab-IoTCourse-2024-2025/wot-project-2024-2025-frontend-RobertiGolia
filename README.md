@@ -24,7 +24,7 @@ La soluzione è progettata per garantire:
 Il sistema si basa su un'architettura modulare, composta da un backend (microservizi) e un'applicazione mobile sviluppata in React Native, ottimizzata per dispositivi Android e iOS.
 
 <p align="center">
-  <img src="(Immagine)" alt="Architettura del sistema" width="600"/>
+  <img src="ImmaginiReadme/flussoUseCase.png" alt="Flusso caso d'uso" width="600"/>
 </p>
 
 ### Componenti principali
