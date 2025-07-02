@@ -1,57 +1,70 @@
-# Progetto IoT - App Frontend
+#Taxi Sociale App – Progetto IoT 2024/2025
 
-APP: Taxi sociale
+## Descrizione del progetto
 
-Questa applicazione è sviluppata con [Expo] e [React Native] e offre un sistema di gestione corse, autenticazione utenti e driver, mappa e chatbot.
+Questo progetto nasce con l'obiettivo di sviluppare una piattaforma intelligente e user-friendly per la gestione e la prenotazione di corse condivise, pensata per favorire la mobilità sostenibile e la collaborazione tra utenti.
 
-## Struttura del progetto
+L'applicazione consente agli utenti di:
 
-- **/app**: contiene tutte le pagine principali dell'app, organizzate per sezioni e ruoli (utente, driver, autenticazione, ecc.).
+- Registrarsi come passeggeri o autisti;
+- Prenotare corse disponibili;
+- Visualizzare in tempo reale lo stato delle proprie prenotazioni;
+- Interagire tramite chatbot;
+- Gestire il proprio profilo personale.
 
-  - **(auth)**: pagine di autenticazione e registrazione (login, registrazione utente, registrazione driver).
-  - **(tabs)**: pagine principali per l'utente (chatbot, profilo, about, ride-booked).
-  - **driver-tabs**: pagine principali per il driver (home, profilo, about).
-  - **dashboard.tsx**: dashboard generale.
-  - **corse.tsx**: gestione delle corse.
-  - **mappa.tsx**: visualizzazione della mappa.
-  - **partenza.tsx**: selezione della partenza.
-  - **ride-accepted.tsx**: conferma corsa accettata.
-  - **scan.tsx**: scanner QR/barcode.
-  - **globals.css**: stili globali.
+La soluzione è progettata per garantire:
 
-- **/components**: componenti riutilizzabili come Header e ThemedText.
+- Facilità d'uso, con un'interfaccia intuitiva e accessibile;
+- Sicurezza nella gestione dei dati personali e delle transazioni;
+- Scalabilità, per supportare un numero crescente di utenti e corse;
+- Integrazione con servizi di notifica, via email, per aggiornamenti in tempo reale.
 
-- **/constants**: costanti (utenti, driver, ecc.).
+## Architettura del Sistema
 
-- **/types**: tipi TypeScript custom per una tipizzazione.
+Il sistema si basa su un'architettura modulare, composta da un backend (microservizi) e un'applicazione mobile sviluppata in React Native, ottimizzata per dispositivi Android e iOS.
 
-- **/assets**: grafica (icone e immagini).
+<p align="center">
+  <img src="(Immagine)" alt="Architettura del sistema" width="600"/>
+</p>
 
-## Dipendenze principali
+### Componenti principali
 
-- **React Native** e **Expo** per lo sviluppo mobile multipiattaforma
-- **expo-router** per routing, cioè per passare da una pagina all'altra
-- **react-navigation** per la navigazione avanzata
-- **nativewind** e **tailwindcss** per la gestione degli stili
-- **react-native-maps** per la mappa
-- **expo-barcode-scanner** per la scansione QR
+- **UserServiceProject**: Gestione degli utenti, autenticazione, autorizzazione e aggiornamento dei dati di profilo.
+- **TripServiceProject**: Gestione delle corse, creazione, prenotazione, cancellazione e visualizzazione delle corse disponibili.
+- **ModelServiceProject**: Supporto agli utenti tramite chat integrata per domande frequenti e assistenza.
+- **Frontend**: Applicazione React Native per la fruizione dei servizi da parte degli utenti.
 
-## Script utili
+## Repositori dei componenti
 
-- `npm install` – Installa tutte le dipendenze
-- `npm start` – Avvia l'app
-- `npm run web` – Avvia in modalità web
-- `npx expo start` – Avvia l'app per accedere da smartphone con expo
+- UserServiceProject: [UserServiceProject](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-UserServiceProject-RobertiGolia)
+- TripServiceProject: [TripServiceProject](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-TripServiceProject-RobertiGolia)
+- ModelServiceProject: [ModelServiceProject](https://github.com/UniSalento-IDALab-IoTCourse-2024-2025/wot-project-2024-2025-ModelServiceProject-RobertiGolia)
 
-## Come iniziare
+## FrontEnd
 
-1. Clona il repository
-2. Esegui `rm -rf node_modules package-lock.json` (solo su macOS)
-3. Installa le dipendenze con `npm install`
-4. Avvia l'app con `npx expo start` e entra scannerizzabdo il QRcode che viene creato
+L'applicazione mobile, sviluppata in React Native, permette agli utenti di:
 
-## Note aggiuntive
+- Visualizzare e prenotare corse disponibili;
+- Gestire il proprio profilo e le proprie prenotazioni;
+- Ricevere notifiche in tempo reale tramite email;
+- Interagire con un chatbot per assistenza rapida.
 
-- La struttura delle cartelle segue la logica del routing di Expo: ogni file `.tsx` in `/app` rappresenta una pagina.
-- Le risorse grafiche sono in `/assets/icons` e `/assets/images`.
-- La tipizzazione è gestita in `/types`.
+L'interfaccia è progettata per essere semplice e intuitiva, con schermate dedicate alla visualizzazione delle corse, alla gestione del profilo. Il codice è organizzato in moduli e componenti riutilizzabili, facilitando la manutenzione e l'estensione futura.
+
+### Schermata Profilo
+
+Nella schermata profilo, l'utente può visualizzare i propri dati personali. Se l'utente è un autista, può visualizzare le corse proposte.
+
+<p align="center">
+  <img src="ImmaginiReadme/profiloUtente.PNG" alt="Profilo Utente" width="250"/>
+  <img src="ImmaginiReadme/profiloAutista.PNG" alt="Profilo Autista" width="250"/>
+</p>
+
+### Schermata Corse
+
+Nella sezione corse, è possibile visualizzare tutte le corse disponibili, prenotare una corsa o proporne una nuova.
+
+<p align="center">
+  <img src="ImmaginiReadme/corseAutista.PNG" alt="Corse Autista" width="250"/>
+  <img src="ImmaginiReadme/corseUtente.PNG" alt="Corse Utente" width="250"/>
+</p>
