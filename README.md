@@ -1,50 +1,57 @@
-# Welcome to your Expo app 👋
+# Progetto IoT - App Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+APP: Taxi sociale
 
-## Get started
+Questa applicazione è sviluppata con [Expo] e [React Native] e offre un sistema di gestione corse, autenticazione utenti e driver, mappa e chatbot.
 
-1. Install dependencies
+## Struttura del progetto
 
-   ```bash
-   npm install
-   ```
+- **/app**: contiene tutte le pagine principali dell'app, organizzate per sezioni e ruoli (utente, driver, autenticazione, ecc.).
 
-2. Start the app
+  - **(auth)**: pagine di autenticazione e registrazione (login, registrazione utente, registrazione driver).
+  - **(tabs)**: pagine principali per l'utente (chatbot, profilo, about, ride-booked).
+  - **driver-tabs**: pagine principali per il driver (home, profilo, about).
+  - **dashboard.tsx**: dashboard generale.
+  - **corse.tsx**: gestione delle corse.
+  - **mappa.tsx**: visualizzazione della mappa.
+  - **partenza.tsx**: selezione della partenza.
+  - **ride-accepted.tsx**: conferma corsa accettata.
+  - **scan.tsx**: scanner QR/barcode.
+  - **globals.css**: stili globali.
 
-   ```bash
-   npx expo start
-   ```
+- **/components**: componenti riutilizzabili come Header e ThemedText.
 
-In the output, you'll find options to open the app in a
+- **/constants**: costanti (utenti, driver, ecc.).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **/types**: tipi TypeScript custom per una tipizzazione.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **/assets**: grafica (icone e immagini).
 
-## Get a fresh project
+## Dipendenze principali
 
-When you're ready, run:
+- **React Native** e **Expo** per lo sviluppo mobile multipiattaforma
+- **expo-router** per routing, cioè per passare da una pagina all'altra
+- **react-navigation** per la navigazione avanzata
+- **nativewind** e **tailwindcss** per la gestione degli stili
+- **react-native-maps** per la mappa
+- **expo-barcode-scanner** per la scansione QR
 
-```bash
-npm run reset-project
-```
+## Script utili
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- `npm install` – Installa tutte le dipendenze
+- `npm start` – Avvia l'app
+- `npm run web` – Avvia in modalità web
+- `npx expo start` – Avvia l'app per accedere da smartphone con expo
 
-## Learn more
+## Come iniziare
 
-To learn more about developing your project with Expo, look at the following resources:
+1. Clona il repository
+2. Esegui `rm -rf node_modules package-lock.json` (solo su macOS)
+3. Installa le dipendenze con `npm install`
+4. Avvia l'app con `npx expo start` e entra scannerizzabdo il QRcode che viene creato
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Note aggiuntive
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- La struttura delle cartelle segue la logica del routing di Expo: ogni file `.tsx` in `/app` rappresenta una pagina.
+- Le risorse grafiche sono in `/assets/icons` e `/assets/images`.
+- La tipizzazione è gestita in `/types`.
