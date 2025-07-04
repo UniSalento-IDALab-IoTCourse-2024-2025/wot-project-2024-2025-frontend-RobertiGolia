@@ -24,7 +24,7 @@ La soluzione è progettata per garantire:
 Il sistema si basa su un'architettura modulare, composta da un backend (microservizi) e un'applicazione mobile sviluppata in React Native, ottimizzata per dispositivi Android e iOS.
 
 <p align="center">
-  <img src="ImmaginiReadme/flussoUseCase.png" alt="Flusso caso d'uso" width="600"/>
+  <img src="ImmaginiReadme/architettura2.png" alt="Flusso caso d'uso" width="600"/>
 </p>
 
 ### Componenti principali
@@ -65,6 +65,6 @@ Nella schermata profilo, l'utente può visualizzare i propri dati personali. Se 
 Nella sezione corse, è possibile visualizzare tutte le corse disponibili, prenotare una corsa o proporne una nuova.
 
 <p align="center">
-  <img src="ImmaginiReadme/corseAutista.PNG" alt="Corse Autista" width="250"/>
   <img src="ImmaginiReadme/corseUtente.PNG" alt="Corse Utente" width="250"/>
+  <img src="ImmaginiReadme/corseAutista.PNG" alt="Corse Autista" width="250"/>
 </p>
