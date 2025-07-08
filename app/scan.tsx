@@ -50,8 +50,8 @@ const ScanScreen = () => {
       handleSendEmail();
 
       Alert.alert(
-        "Autista",
-        `ID: ${data.id}\nUsername: ${data.username}\nNome: ${data.nome}\nCognome: ${data.cognome}`,
+        "Corsa inizializzata",
+        undefined,
         [
           {
             text: "OK",
